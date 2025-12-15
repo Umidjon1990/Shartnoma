@@ -105,7 +105,7 @@ export function WebWizard() {
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const scale = 3;
+      const scale = 2;
       const width = element.offsetWidth || 794;
       const height = element.offsetHeight || 1123;
       
@@ -137,13 +137,42 @@ export function WebWizard() {
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgRatio = height / width;
-      const pdfImgWidth = pdfWidth - 10;
-      const pdfImgHeight = pdfImgWidth * imgRatio;
-      const imgX = 5;
-      const imgY = 5;
+      const margin = 5;
+      const usableWidth = pdfWidth - (margin * 2);
+      const usableHeight = pdfHeight - (margin * 2);
       
-      pdf.addImage(imgData, 'PNG', imgX, imgY, pdfImgWidth, Math.min(pdfImgHeight, pdfHeight - 10), undefined, 'FAST');
+      const imgRatio = height / width;
+      const pdfImgWidth = usableWidth;
+      const pdfImgHeight = pdfImgWidth * imgRatio;
+      
+      if (pdfImgHeight <= usableHeight) {
+        pdf.addImage(imgData, 'PNG', margin, margin, pdfImgWidth, pdfImgHeight, undefined, 'FAST');
+      } else {
+        const pageContentHeight = usableHeight;
+        const totalPages = Math.ceil(pdfImgHeight / pageContentHeight);
+        
+        for (let page = 0; page < totalPages; page++) {
+          if (page > 0) {
+            pdf.addPage();
+          }
+          
+          const sourceY = (page * pageContentHeight / pdfImgHeight) * (height * scale);
+          const sourceHeight = (pageContentHeight / pdfImgHeight) * (height * scale);
+          
+          const yOffset = -page * pageContentHeight;
+          
+          pdf.addImage(
+            imgData, 
+            'PNG', 
+            margin, 
+            margin + yOffset, 
+            pdfImgWidth, 
+            pdfImgHeight, 
+            undefined, 
+            'FAST'
+          );
+        }
+      }
       
       const fileName = createdContract 
         ? `Shartnoma_${createdContract.contractNumber}.pdf`
