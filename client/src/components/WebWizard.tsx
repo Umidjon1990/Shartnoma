@@ -9,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles } from 'lucide-react';
 import { useContract, CourseLevel } from '@/lib/contract-context';
+import { useMutation } from '@tanstack/react-query';
+import { createContract } from '@/lib/api';
 import { ContractPaper } from '@/components/ContractPaper';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -17,8 +19,28 @@ type Step = 1 | 2 | 3 | 4;
 
 export function WebWizard() {
   const [step, setStep] = useState<Step>(1);
-  const { addContract, contractTemplate } = useContract();
+  const { contractTemplate } = useContract();
   const { toast } = useToast();
+  
+  const createMutation = useMutation({
+    mutationFn: createContract,
+    onSuccess: () => {
+      setStep(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast({
+        title: "Muvaffaqiyatli!",
+        description: "Shartnoma tuzildi va Telegram botga yuborildi.",
+        className: "bg-green-50 border-green-200"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Xatolik",
+        description: error.message || "Shartnoma tuzishda xatolik yuz berdi",
+        variant: "destructive"
+      });
+    }
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -48,31 +70,13 @@ export function WebWizard() {
   };
 
   const handleSubmit = () => {
-    // Simulate API call and Telegram notification
-    const promise = new Promise((resolve) => setTimeout(resolve, 1500));
-
-    toast({
-      title: "Jarayon boshlandi",
-      description: "Ma'lumotlar qayta ishlanmoqda...",
-    });
-
-    promise.then(() => {
-      addContract({
-        studentName: formData.name,
-        age: formData.age,
-        phone: formData.phone,
-        course: formData.course,
-        format: 'Online'
-      });
-      setStep(4);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Simulate Telegram notification success
-      toast({
-        title: "Muvaffaqiyatli!",
-        description: "Shartnoma tuzildi va Telegram botga yuborildi.",
-        className: "bg-green-50 border-green-200"
-      });
+    createMutation.mutate({
+      studentName: formData.name,
+      age: formData.age,
+      phone: formData.phone,
+      course: formData.course,
+      format: 'Online',
+      status: 'signed'
     });
   };
 

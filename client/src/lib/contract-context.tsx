@@ -1,23 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { type Contract } from '@shared/schema';
 
 export type CourseLevel = 'A0-A1' | 'A1-A2' | 'A2-B1' | 'B1-B2' | 'CEFR-PRO';
-
-export interface ContractData {
-  id: string;
-  studentName: string;
-  age: string;
-  phone: string;
-  course: CourseLevel;
-  format: 'Online' | 'Offline';
-  date: string;
-  status: 'draft' | 'signed';
-}
 
 interface ContractContextType {
   contractTemplate: string;
   updateContractTemplate: (text: string) => void;
-  contracts: ContractData[];
-  addContract: (data: Omit<ContractData, 'id' | 'date' | 'status'>) => void;
 }
 
 const defaultTemplate = `
@@ -52,45 +40,13 @@ const ContractContext = createContext<ContractContextType | undefined>(undefined
 
 export function ContractProvider({ children }: { children: ReactNode }) {
   const [contractTemplate, setContractTemplate] = useState(defaultTemplate);
-  const [contracts, setContracts] = useState<ContractData[]>([
-    {
-      id: 'CN-2024-001',
-      studentName: 'Azizbek Tursunov',
-      age: '22',
-      phone: '+998901234567',
-      course: 'B1-B2',
-      format: 'Online',
-      date: '2024-12-10',
-      status: 'signed'
-    },
-    {
-      id: 'CN-2024-002',
-      studentName: 'Malika Karimova',
-      age: '19',
-      phone: '+998939876543',
-      course: 'A2-B1',
-      format: 'Online',
-      date: '2024-12-14',
-      status: 'signed'
-    }
-  ]);
 
   const updateContractTemplate = (text: string) => {
     setContractTemplate(text);
   };
 
-  const addContract = (data: Omit<ContractData, 'id' | 'date' | 'status'>) => {
-    const newContract: ContractData = {
-      ...data,
-      id: `CN-2025-${(contracts.length + 1).toString().padStart(3, '0')}`,
-      date: new Date().toISOString().split('T')[0],
-      status: 'signed'
-    };
-    setContracts([newContract, ...contracts]);
-  };
-
   return (
-    <ContractContext.Provider value={{ contractTemplate, updateContractTemplate, contracts, addContract }}>
+    <ContractContext.Provider value={{ contractTemplate, updateContractTemplate }}>
       {children}
     </ContractContext.Provider>
   );

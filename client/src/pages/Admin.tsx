@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { useContract, ContractData } from '@/lib/contract-context';
+import { useContract } from '@/lib/contract-context';
+import { useQuery } from '@tanstack/react-query';
+import { fetchContracts } from '@/lib/api';
+import type { Contract } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,13 +14,18 @@ import { Search, FileEdit, Users, Calendar, Download, Send, Globe, MessageSquare
 import { Link } from 'wouter';
 
 export default function Admin() {
-  const { contracts, contractTemplate, updateContractTemplate } = useContract();
+  const { contractTemplate, updateContractTemplate } = useContract();
   const [searchTerm, setSearchTerm] = useState('');
   const [templateText, setTemplateText] = useState(contractTemplate);
+  
+  const { data: contracts = [], isLoading } = useQuery({
+    queryKey: ['contracts'],
+    queryFn: fetchContracts,
+  });
 
   const filteredContracts = contracts.filter(c => 
     c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
+    c.contractNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleTemplateSave = () => {
@@ -106,39 +114,46 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredContracts.map((contract) => (
-                      <TableRow key={contract.id}>
-                        <TableCell className="font-mono text-xs">{contract.id}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{contract.studentName}</div>
-                          <div className="text-xs text-gray-500">{contract.phone}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{contract.course}</Badge>
-                        </TableCell>
-                        <TableCell>{contract.date}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
-                             <MessageSquare className="w-3 h-3 text-blue-500" />
-                             Telegram Bot
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 shadow-none border-0">Imzolangan</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                            <Download className="h-4 w-4" />
-                          </Button>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          Yuklanmoqda...
                         </TableCell>
                       </TableRow>
-                    ))}
-                    {filteredContracts.length === 0 && (
+                    ) : filteredContracts.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                           Hech narsa topilmadi
                         </TableCell>
                       </TableRow>
+                    ) : (
+                      filteredContracts.map((contract) => (
+                        <TableRow key={contract.id}>
+                          <TableCell className="font-mono text-xs">{contract.contractNumber}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{contract.studentName}</div>
+                            <div className="text-xs text-gray-500">{contract.phone}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{contract.course}</Badge>
+                          </TableCell>
+                          <TableCell>{new Date(contract.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <MessageSquare className="w-3 h-3 text-blue-500" />
+                              Web
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800 hover:bg-green-100 shadow-none border-0">Imzolangan</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     )}
                   </TableBody>
                 </Table>
