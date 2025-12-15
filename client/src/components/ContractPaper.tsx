@@ -1,8 +1,8 @@
 import React from 'react';
 import { useContract } from '@/lib/contract-context';
-import logo from '@assets/generated_images/modern_education_logo.png';
+import logo from '@assets/zamonaviy_talim_logo.png';
 import { cn } from '@/lib/utils';
-import { Check, Download } from 'lucide-react';
+import { Download, MapPin, Phone, Building, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ContractPaperProps {
@@ -21,84 +21,191 @@ interface ContractPaperProps {
 export function ContractPaper({ data, className, onDownload }: ContractPaperProps) {
   const { contractTemplate } = useContract();
 
-  const formattedDate = data.date || new Date().toISOString().split('T')[0];
+  const formattedDate = data.date || new Date().toLocaleDateString('uz-UZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
   const contractNumber = data.number || 'DRAFT';
 
-  // Replace placeholders (use replaceAll for multiple occurrences)
-  const filledContent = contractTemplate
-    .replaceAll('{name}', data.name || '___________')
-    .replaceAll('{age}', data.age || '___')
-    .replaceAll('{course}', data.course || '___________')
-    .replaceAll('{format}', data.format || 'Online')
-    .replaceAll('{date}', formattedDate)
-    .replaceAll('{number}', contractNumber);
+  const sections = contractTemplate.split(/\n(?=\d+\.\s)/);
 
   return (
     <div className={cn("flex flex-col items-center gap-6", className)}>
-      {/* Visual representation of an A4 paper */}
-      <div className="bg-white text-black w-full max-w-[210mm] min-h-[297mm] p-12 md:p-16 shadow-2xl relative paper-shadow mx-auto transition-transform duration-500 ease-in-out">
+      <div className="bg-white text-gray-800 w-full max-w-[210mm] min-h-[297mm] shadow-2xl relative mx-auto overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
         
-        {/* Header */}
-        <div className="flex justify-between items-center border-b-2 border-blue-900 pb-6 mb-8">
-          <div className="flex items-center gap-4">
-            <img src={logo} alt="Logo" className="h-16 w-16 object-contain" />
-            <div>
-              <h1 className="text-2xl font-bold text-blue-900 uppercase tracking-wide">Zamonaviy Ta'lim</h1>
-              <p className="text-sm text-gray-500">Innovatsion o'quv markazi</p>
+        {/* Modern Header with Gradient */}
+        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-8 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          </div>
+          
+          <div className="relative flex justify-between items-center">
+            <div className="flex items-center gap-5">
+              <div className="bg-white rounded-full p-2 shadow-lg">
+                <img src={logo} alt="Zamonaviy Ta'lim" className="h-20 w-20 object-contain" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-wide">ZAMONAVIY TA'LIM</h1>
+                <p className="text-blue-200 text-sm mt-1">Arab • Ingliz • Rus Tillari</p>
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="font-mono text-sm text-gray-500">Shartnoma №</p>
-            <p className="font-mono text-xl font-bold text-blue-900">{contractNumber}</p>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="contract-text text-sm md:text-base whitespace-pre-wrap text-justify">
-          {filledContent}
-        </div>
-
-        {/* Footer/Signatures */}
-        <div className="mt-16 grid grid-cols-2 gap-12 pt-8 border-t border-gray-200">
-          <div>
-            <h3 className="font-bold text-blue-900 mb-4">O'QUV MARKAZI</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p>MCHJ "Zamonaviy Ta'lim"</p>
-              <p>Namangan vil., Uychi tum., Bog' MFY</p>
-              <p>INN: 312 316 714</p>
-              <div className="mt-6">
-                <div className="relative inline-block">
-                  <div className="border-b border-black w-32 mb-1"></div>
-                  <p className="text-[10px] text-gray-400">Imzo va muhr</p>
-                  
-                  {/* Digital Stamp/Signature Simulation */}
-                  <div className="absolute -top-4 -left-2 w-24 h-24 border-2 border-blue-600 rounded-full flex items-center justify-center opacity-80 rotate-[-12deg] pointer-events-none">
-                    <div className="text-center">
-                      <p className="text-[8px] font-bold text-blue-600 uppercase">Tasdiqlandi</p>
-                      <p className="text-[6px] text-blue-600">Zamonaviy Ta'lim</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="text-right">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                <p className="text-blue-200 text-xs uppercase tracking-wider">Shartnoma</p>
+                <p className="text-2xl font-bold font-mono">№ {contractNumber}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <h3 className="font-bold text-blue-900 mb-4">O'QUVCHI</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p className="font-semibold">{data.name || 'F.I.SH'}</p>
-              <p>Yosh: {data.age || '___'}</p>
-              <div className="mt-10">
-                 <div className="border-b border-black w-32 mb-1"></div>
-                 <p className="text-[10px] text-gray-400">Imzo</p>
+        {/* Document Title */}
+        <div className="text-center py-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800 uppercase tracking-widest">ONLAYN O'QUV SHARTNOMASI</h2>
+          <p className="text-gray-500 mt-2">{formattedDate}</p>
+        </div>
+
+        {/* Parties Info Card */}
+        <div className="mx-8 my-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-xs text-blue-600 uppercase font-semibold mb-1">Markaz</p>
+              <p className="font-semibold text-gray-800">"Zamonaviy Ta'lim" MCHJ</p>
+            </div>
+            <div>
+              <p className="text-xs text-blue-600 uppercase font-semibold mb-1">O'quvchi</p>
+              <p className="font-semibold text-gray-800">{data.name || '_______________'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-blue-200">
+            <div>
+              <p className="text-xs text-gray-500">Kurs</p>
+              <p className="font-medium text-gray-800">{data.course || '___'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Format</p>
+              <p className="font-medium text-gray-800">{data.format || 'Online'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Yosh</p>
+              <p className="font-medium text-gray-800">{data.age || '___'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Contract Content */}
+        <div className="px-8 pb-6 space-y-4">
+          {sections.map((section, index) => {
+            if (!section.trim()) return null;
+            const titleMatch = section.match(/^(\d+)\.\s*([A-ZА-ЯЎҚҒҲ\s']+)/);
+            
+            if (titleMatch) {
+              const [, num, title] = titleMatch;
+              const content = section.replace(/^\d+\.\s*[A-ZА-ЯЎҚҒҲ\s']+\n?/, '');
+              
+              return (
+                <div key={index} className="group">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="flex-shrink-0 w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
+                      {num}
+                    </span>
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{title.trim()}</h3>
+                  </div>
+                  <div className="ml-10 text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                    {content.trim()
+                      .replaceAll('{name}', data.name || '_______________')
+                      .replaceAll('{age}', data.age || '___')
+                      .replaceAll('{course}', data.course || '_______________')
+                      .replaceAll('{format}', data.format || 'Online')
+                      .replaceAll('{date}', formattedDate)
+                      .replaceAll('{number}', contractNumber)}
+                  </div>
+                </div>
+              );
+            }
+            
+            return (
+              <div key={index} className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                {section.trim()
+                  .replaceAll('{name}', data.name || '_______________')
+                  .replaceAll('{age}', data.age || '___')
+                  .replaceAll('{course}', data.course || '_______________')
+                  .replaceAll('{format}', data.format || 'Online')
+                  .replaceAll('{date}', formattedDate)
+                  .replaceAll('{number}', contractNumber)}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer/Signatures - Modern Grid Layout */}
+        <div className="mx-8 mb-8 mt-auto">
+          <div className="border-t-2 border-blue-900 pt-6">
+            <div className="grid grid-cols-2 gap-8">
+              {/* Markaz Section */}
+              <div className="bg-gray-50 rounded-xl p-5 relative">
+                <h3 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
+                  <Building className="w-4 h-4" />
+                  O'quv Markazi
+                </h3>
+                <div className="text-xs text-gray-600 space-y-2">
+                  <p className="font-semibold text-gray-800">MCHJ "Zamonaviy Ta'lim"</p>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-3 h-3 mt-0.5 text-blue-600" />
+                    <p>Namangan vil., Uychi tum., Bog' MFY, Savdogar ko'chasi, 41-uy</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-3 h-3 text-blue-600" />
+                    <p>INN: 312 316 714</p>
+                  </div>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="border-b-2 border-gray-400 w-36 mb-1"></div>
+                  <p className="text-[10px] text-gray-400">Imzo va muhr</p>
+                </div>
+                
+                {/* Seal */}
+                <div className="absolute top-4 right-4 w-20 h-20 border-3 border-blue-700 rounded-full flex items-center justify-center opacity-70 rotate-[-8deg]">
+                  <div className="text-center">
+                    <p className="text-[7px] font-bold text-blue-700 uppercase">Tasdiqlandi</p>
+                    <div className="w-8 h-[1px] bg-blue-700 mx-auto my-0.5"></div>
+                    <p className="text-[5px] text-blue-700">2024</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* O'quvchi Section */}
+              <div className="bg-gray-50 rounded-xl p-5">
+                <h3 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-4">O'quvchi</h3>
+                <div className="text-xs text-gray-600 space-y-2">
+                  <div>
+                    <p className="text-gray-400">F.I.SH:</p>
+                    <p className="font-semibold text-gray-800">{data.name || '_______________'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-gray-400">Yosh:</p>
+                      <p className="font-medium">{data.age || '___'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Kurs:</p>
+                      <p className="font-medium">{data.course || '___'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 pt-4 border-t border-gray-200">
+                  <div className="border-b-2 border-gray-400 w-36 mb-1"></div>
+                  <p className="text-[10px] text-gray-400">Imzo</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
-          <img src={logo} alt="Watermark" className="w-96 h-96 grayscale" />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04]">
+          <img src={logo} alt="Watermark" className="w-80 h-80" />
         </div>
       </div>
 
