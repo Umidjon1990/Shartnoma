@@ -24,14 +24,14 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
   const formattedDate = data.date || new Date().toISOString().split('T')[0];
   const contractNumber = data.number || 'DRAFT';
 
-  // Replace placeholders
+  // Replace placeholders (use replaceAll for multiple occurrences)
   const filledContent = contractTemplate
-    .replace('{name}', data.name || '___________')
-    .replace('{age}', data.age || '___')
-    .replace('{course}', data.course || '___________')
-    .replace('{format}', data.format || 'Online')
-    .replace('{date}', formattedDate)
-    .replace('{number}', contractNumber);
+    .replaceAll('{name}', data.name || '___________')
+    .replaceAll('{age}', data.age || '___')
+    .replaceAll('{course}', data.course || '___________')
+    .replaceAll('{format}', data.format || 'Online')
+    .replaceAll('{date}', formattedDate)
+    .replaceAll('{number}', contractNumber);
 
   return (
     <div className={cn("flex flex-col items-center gap-6", className)}>
@@ -64,8 +64,8 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
             <h3 className="font-bold text-blue-900 mb-4">O'QUV MARKAZI</h3>
             <div className="text-xs text-gray-600 space-y-1">
               <p>MCHJ "Zamonaviy Ta'lim"</p>
-              <p>Toshkent sh., Markaz-1, 15-uy</p>
-              <p>Tel: +998 71 200-00-00</p>
+              <p>Namangan vil., Uychi tum., Bog' MFY</p>
+              <p>INN: 312 316 714</p>
               <div className="mt-6">
                 <div className="relative inline-block">
                   <div className="border-b border-black w-32 mb-1"></div>

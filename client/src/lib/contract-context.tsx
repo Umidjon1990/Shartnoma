@@ -9,31 +9,69 @@ interface ContractContextType {
 }
 
 const defaultTemplate = `
-SHARTNOMA № {number}
+ONLAYN O'QUV SHARTNOMA № {number}
 
-Toshkent sh.                                                              {date}
+Sana: {date}
 
-"Zamonaviy Ta'lim" MCHJ (keyingi o'rinlarda "O'quv Markazi" deb yuritiladi) bir tomondan va {name} (keyingi o'rinlarda "O'quvchi" deb yuritiladi) ikkinchi tomondan, ushbu shartnomani quyidagilar haqida tuzdilar:
+O'rtasida:
+"Zamonaviy Ta'lim" MCHJ (bundan keyin "Markaz" deb yuritiladi)
+va
+{name} (bundan keyin "O'quvchi" deb yuritiladi)
 
-1. SHARTNOMA PREDMETI
-1.1. O'quv Markazi O'quvchini "{course}" kursi bo'yicha {format} formatda o'qitish majburiyatini oladi.
-1.2. O'quvchi belgilangan tartibda darslarda qatnashish va to'lovlarni o'z vaqtida amalga oshirish majburiyatini oladi.
+1. SHARTNOMA MAQSADI
+Ushbu shartnoma Markaz tomonidan tashkil etilgan "{course}" dasturi doirasida o'quvchining mas'uliyatini, to'lov tartibini va Markaz kafolatlarini belgilashga qaratilgan.
 
-2. O'QUV JARAYONI VA SHARTLARI
-2.1. O'quvchining yoshi: {age} yosh.
-2.2. Darslar {format} tarzda, maxsus platforma orqali olib boriladi.
-2.3. O'quvchi darslarda faol qatnashishi shart.
-2.4. Dars yozuvlari va materiallari faqat shaxsiy foydalanish uchun beriladi. Ularni uchinchi shaxslarga tarqatish qat'iyan man etiladi.
+2. KURS TASHKILOTI
+Darslar yopiq Telegram guruhlari orqali olib boriladi.
+Har bir bosqich o'rtacha 2 oy davom etadi.
+Darslar Bosqichli Arab Tili, Miftah, va CEFR standartlariga asoslangan materiallar asosida tashkil qilinadi.
 
-3. TOMONLARNING HUQUQ VA MAJBURIYATLARI
-3.1. O'quvchi darslarga o'z vaqtida qo'shilishi, uy vazifalarini bajarishi shart.
-3.2. Qoidabuzarlik holatlari kuzatilganda, O'quvchiga ogohlantirish beriladi. Qoidabuzarlik davom etsa, O'quv Markazi shartnomani bekor qilish huquqiga ega.
+3. O'QUVCHINING MAJBURIYATLARI
+O'quvchi darslarni muntazam kuzatib borishi va faol ishtirok etishi shart.
+O'quvchi 1 hafta davomida hech qanday vazifa yubormasa, sababsiz holda guruhdan chetlatiladi.
+O'quvchi bosqichni muvaffaqiyatli yakunlamasa, keyingi bosqichga imtihon asosida o'ta oladi yoki shu bosqichni qayta o'qiydi.
+O'quvchi kurs davomida barcha ichki tartib-qoidalarga rioya qilishi shart.
+O'quvchi to'lovni belgilangan muddatda amalga oshirishi kerak.
 
-4. TO'LOV TARTIBI
-4.1. To'lov har oyning belgilangan sanasigacha amalga oshirilishi lozim.
+4. MARKAZNING MAJBURIYATLARI
+Markaz har bir bosqich uchun sifatli video darslar va materiallar bilan ta'minlaydi.
+Markaz o'quvchining natijasi uchun kafolat beradi, agar o'quvchi topshiriqlarni to'liq bajargan bo'lsa.
+Markaz haftasiga 2 marta jonli darsni amalga oshiradi va bitta video manba/video darslik.
+Markaz o'quvchi murojaatlariga o'z vaqtida javob beradi.
+Belgilangan darslarni o'z vaqtida o'tish.
 
-5. YAKUNIY QOIDALAR
-5.1. Ushbu shartnoma O'quvchi tomonidan tasdiqlangandan so'ng kuchga kiradi.
+5. TO'LOV TARTIBI VA QAYTARISH SHARTLARI
+Kursning oylik to'lovi 400.000 so'm miqdorida belgilanadi.
+To'lov kurs uchun oldindan amalga oshiriladi.
+O'quvchi kurs sifatidan norozi bo'lsagina, 30% soliq xizmat haqi ushlab qolingan holda to'lov qaytarilishi mumkin.
+Boshqa hollarda to'lov qaytarilmaydi.
+Qaytariladigan to'lov (agar mavjud bo'lsa) 1 oy ichida amalga oshiriladi.
+
+6. KAFOLATLAR VA MA'SULIYAT
+Markaz o'quvchi kursni to'liq o'tagan va topshiriqlarni bajargan taqdirda darajasining oshishini kafolatlaydi.
+O'quvchi tomonidan intizom buzilishi, topshiriqlarning muntazam yuborilmasligi yoki muloqotdagi qo'pol xatti-harakatlar uchun Markaz chetlatish huquqiga ega.
+Shartnomadagi barcha shartlarni buzgan tomon ma'suliyatni o'z zimmasiga oladi.
+
+7. SHARTNOMA MUDDATI
+Ushbu shartnoma o'quvchi kursga ro'yxatdan o'tgan paytdan boshlab kuchga kiradi va quyidagi hollarda avtomatik bekor bo'ladi:
+1. Bir haftadan ko'p darslarga kirmasa
+2. To'lovni o'z vaqtida amalga oshirmasa
+3. O'quv jarayoni muddati tugasa
+
+8. TOMONLARNING ROZILIGI
+Quyidagi "Tasdiqlayman" tugmasini bosish orqali O'quvchi shartlar bilan tanishganini va rozi ekanini bildiradi.
+
+O'quv markazi ma'lumotlari:
+Manzil: Namangan viloyati, Uychi tumani, Bog' MFY, Savdogar ko'chasi, 41-uy.
+INN: 312 316 714
+BANK: Agrobank MFO: 00244
+Hisob raqam: 20208000007282925001
+
+O'quvchining ma'lumotlari:
+F.I.SH: {name}
+Yoshi: {age}
+Kurs: {course}
+Format: {format}
 `;
 
 const ContractContext = createContext<ContractContextType | undefined>(undefined);
