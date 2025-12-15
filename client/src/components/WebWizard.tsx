@@ -14,7 +14,7 @@ import { createContract } from '@/lib/api';
 import { ContractPaper } from '@/components/ContractPaper';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 import jsPDF from 'jspdf';
 import type { Contract } from '@shared/schema';
 
@@ -92,21 +92,39 @@ export function WebWizard() {
     
     setIsDownloading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       const element = contractRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        imageTimeout: 15000,
-        removeContainer: true,
-        foreignObjectRendering: false
+      const parentElement = element.parentElement;
+      
+      if (parentElement) {
+        parentElement.style.position = 'fixed';
+        parentElement.style.left = '0';
+        parentElement.style.top = '0';
+        parentElement.style.zIndex = '-1';
+        parentElement.style.opacity = '1';
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const width = element.offsetWidth || 794;
+      const height = element.offsetHeight || 1123;
+      
+      const imgData = await domtoimage.toPng(element, {
+        width: width,
+        height: height,
+        bgcolor: '#ffffff',
+        style: {
+          backgroundColor: '#ffffff'
+        }
       });
       
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (parentElement) {
+        parentElement.style.position = 'absolute';
+        parentElement.style.left = '-9999px';
+        parentElement.style.top = '-9999px';
+        parentElement.style.zIndex = '';
+        parentElement.style.opacity = '';
+      }
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -115,13 +133,13 @@ export function WebWizard() {
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 0;
+      const imgRatio = height / width;
+      const pdfImgWidth = pdfWidth - 10;
+      const pdfImgHeight = pdfImgWidth * imgRatio;
+      const imgX = 5;
+      const imgY = 5;
       
-      pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.addImage(imgData, 'PNG', imgX, imgY, pdfImgWidth, Math.min(pdfImgHeight, pdfHeight - 10));
       
       const fileName = createdContract 
         ? `Shartnoma_${createdContract.contractNumber}.pdf`
@@ -136,9 +154,10 @@ export function WebWizard() {
       });
     } catch (error: any) {
       console.error('PDF download error:', error);
+      const errorMessage = error?.message || error?.toString() || "PDF yuklab olishda xatolik yuz berdi";
       toast({
         title: "Xatolik",
-        description: error?.message || "PDF yuklab olishda xatolik yuz berdi",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
