@@ -48,18 +48,31 @@ export function WebWizard() {
   };
 
   const handleSubmit = () => {
-    addContract({
-      studentName: formData.name,
-      age: formData.age,
-      phone: formData.phone,
-      course: formData.course,
-      format: 'Online'
-    });
-    setStep(4);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Simulate API call and Telegram notification
+    const promise = new Promise((resolve) => setTimeout(resolve, 1500));
+
     toast({
-      title: "Muvaffaqiyatli!",
-      description: "Shartnoma rasmiylashtirildi.",
+      title: "Jarayon boshlandi",
+      description: "Ma'lumotlar qayta ishlanmoqda...",
+    });
+
+    promise.then(() => {
+      addContract({
+        studentName: formData.name,
+        age: formData.age,
+        phone: formData.phone,
+        course: formData.course,
+        format: 'Online'
+      });
+      setStep(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Simulate Telegram notification success
+      toast({
+        title: "Muvaffaqiyatli!",
+        description: "Shartnoma tuzildi va Telegram botga yuborildi.",
+        className: "bg-green-50 border-green-200"
+      });
     });
   };
 
