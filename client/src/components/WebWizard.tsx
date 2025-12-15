@@ -103,13 +103,13 @@ export function WebWizard() {
         parentElement.style.opacity = '1';
       }
       
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const scale = 2;
+      const scale = 3;
       const width = element.offsetWidth || 794;
       const height = element.offsetHeight || 1123;
       
-      const imgData = await domtoimage.toPng(element, {
+      const dataUrl = await domtoimage.toPng(element, {
         width: width * scale,
         height: height * scale,
         bgcolor: '#ffffff',
@@ -128,50 +128,49 @@ export function WebWizard() {
         parentElement.style.opacity = '';
       }
       
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4',
-        compress: false
+        format: 'a4'
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 5;
+      const margin = 8;
       const usableWidth = pdfWidth - (margin * 2);
       const usableHeight = pdfHeight - (margin * 2);
       
-      const imgRatio = height / width;
+      const imgAspect = img.height / img.width;
       const pdfImgWidth = usableWidth;
-      const pdfImgHeight = pdfImgWidth * imgRatio;
+      const pdfImgHeight = pdfImgWidth * imgAspect;
       
-      if (pdfImgHeight <= usableHeight) {
-        pdf.addImage(imgData, 'PNG', margin, margin, pdfImgWidth, pdfImgHeight, undefined, 'FAST');
-      } else {
-        const pageContentHeight = usableHeight;
-        const totalPages = Math.ceil(pdfImgHeight / pageContentHeight);
-        
-        for (let page = 0; page < totalPages; page++) {
-          if (page > 0) {
-            pdf.addPage();
-          }
-          
-          const sourceY = (page * pageContentHeight / pdfImgHeight) * (height * scale);
-          const sourceHeight = (pageContentHeight / pdfImgHeight) * (height * scale);
-          
-          const yOffset = -page * pageContentHeight;
-          
-          pdf.addImage(
-            imgData, 
-            'PNG', 
-            margin, 
-            margin + yOffset, 
-            pdfImgWidth, 
-            pdfImgHeight, 
-            undefined, 
-            'FAST'
-          );
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      
+      const pageHeightInPx = (usableHeight / pdfImgHeight) * img.height;
+      const totalPages = Math.ceil(img.height / pageHeightInPx);
+      
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
         }
+        
+        const sourceY = page * pageHeightInPx;
+        const sourceHeight = Math.min(pageHeightInPx, img.height - sourceY);
+        const destHeight = (sourceHeight / img.height) * pdfImgHeight;
+        
+        canvas.width = img.width;
+        canvas.height = sourceHeight;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, img.width, sourceHeight);
+        
+        const pageData = canvas.toDataURL('image/png', 1.0);
+        pdf.addImage(pageData, 'PNG', margin, margin, pdfImgWidth, destHeight);
       }
       
       const fileName = createdContract 
