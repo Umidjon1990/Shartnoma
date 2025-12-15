@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useContract, ContractData } from '@/lib/contract-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, FileEdit, Users, Calendar, Download } from 'lucide-react';
+import { Search, FileEdit, Users, Calendar, Download, Send, Globe, MessageSquare } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function Admin() {
@@ -39,9 +39,10 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="contracts" className="w-full">
-          <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+          <TabsList className="grid w-full md:w-[600px] grid-cols-3">
             <TabsTrigger value="contracts">Shartnomalar</TabsTrigger>
             <TabsTrigger value="settings">Sozlamalar</TabsTrigger>
+            <TabsTrigger value="integrations">Integratsiyalar</TabsTrigger>
           </TabsList>
           
           <TabsContent value="contracts" className="space-y-4 mt-6">
@@ -99,6 +100,7 @@ export default function Admin() {
                       <TableHead>O'quvchi</TableHead>
                       <TableHead>Kurs</TableHead>
                       <TableHead>Sana</TableHead>
+                      <TableHead>Manba</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Amallar</TableHead>
                     </TableRow>
@@ -116,6 +118,12 @@ export default function Admin() {
                         </TableCell>
                         <TableCell>{contract.date}</TableCell>
                         <TableCell>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                             <MessageSquare className="w-3 h-3 text-blue-500" />
+                             Telegram Bot
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <Badge className="bg-green-100 text-green-800 hover:bg-green-100 shadow-none border-0">Imzolangan</Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -127,7 +135,7 @@ export default function Admin() {
                     ))}
                     {filteredContracts.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                           Hech narsa topilmadi
                         </TableCell>
                       </TableRow>
@@ -157,6 +165,65 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <Send className="w-6 h-6 text-blue-500" />
+                     Telegram Bot
+                   </CardTitle>
+                   <CardDescription>
+                     Telegram botingizni ulash va sozlash
+                   </CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-green-900">Faol Ulangan</p>
+                        <p className="text-xs text-green-700">@ZamonaviyTalimBot</p>
+                      </div>
+                      <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <p className="text-sm font-medium">Webhook URL</p>
+                       <Input value="https://api.zamonaviy.uz/webhook/telegram" readOnly className="bg-gray-50 font-mono text-xs" />
+                    </div>
+
+                    <Button variant="outline" className="w-full">
+                      Bot Sozlamalarini Yangilash
+                    </Button>
+                 </CardContent>
+               </Card>
+
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <Globe className="w-6 h-6 text-gray-500" />
+                     Web Integratsiya
+                   </CardTitle>
+                   <CardDescription>
+                     Saytingizga vidjet o'rnatish
+                   </CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                       <p className="text-sm font-medium">Embed Code</p>
+                       <Textarea 
+                         readOnly 
+                         className="bg-gray-50 font-mono text-xs min-h-[100px]" 
+                         value={`<script src="https://zamonaviy.uz/widget.js"></script>\n<div id="contract-bot"></div>`}
+                       />
+                    </div>
+                    <Button className="w-full">
+                      Nusxa Olish
+                    </Button>
+                 </CardContent>
+               </Card>
+             </div>
           </TabsContent>
         </Tabs>
       </div>

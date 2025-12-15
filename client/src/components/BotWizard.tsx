@@ -4,23 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, FileText, CheckCircle, ArrowRight, User, Phone, BookOpen, Bot } from 'lucide-react';
+import { Send, FileText, CheckCircle, ArrowRight, User, Phone, Bot, Paperclip } from 'lucide-react';
 import { useContract, CourseLevel } from '@/lib/contract-context';
 import { ContractPaper } from '@/components/ContractPaper';
 import { useToast } from '@/hooks/use-toast';
-import logo from '@assets/generated_images/modern_education_logo.png';
 
 type Step = 'welcome' | 'read_contract' | 'fill_details' | 'confirm' | 'completed';
 
 export function BotWizard() {
   const [step, setStep] = useState<Step>('welcome');
-  const [messages, setMessages] = useState<{ id: number; type: 'bot' | 'user'; content: React.ReactNode }[]>([
+  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<{ id: number; type: 'bot' | 'user'; content: React.ReactNode; time: string }[]>([
     { 
       id: 1, 
       type: 'bot', 
-      content: 'Assalomu alaykum! "Zamonaviy Ta\'lim" o\'quv markazining rasmiy botiga xush kelibsiz. Men sizga shartnoma tuzishda yordam beraman.' 
+      content: 'Assalomu alaykum! "Zamonaviy Ta\'lim" o\'quv markazining rasmiy botiga xush kelibsiz. Men sizga shartnoma tuzishda yordam beraman.',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,15 +42,24 @@ export function BotWizard() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, step]);
+  }, [messages, isTyping, step]);
 
   const addMessage = (type: 'bot' | 'user', content: React.ReactNode) => {
-    setMessages(prev => [...prev, { id: Date.now(), type, content }]);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [...prev, { id: Date.now(), type, content, time }]);
+  };
+
+  const simulateBotTyping = (callback: () => void, duration = 1000) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      callback();
+    }, duration);
   };
 
   const handleStart = () => {
     addMessage('user', '/start');
-    setTimeout(() => {
+    simulateBotTyping(() => {
       setStep('read_contract');
       addMessage('bot', (
         <div className="space-y-4">
@@ -59,22 +69,22 @@ export function BotWizard() {
           </div>
           <Button 
             onClick={() => handleAcceptContract()} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
           >
             <FileText className="w-4 h-4 mr-2" />
             Shartnoma bilan tanishdim
           </Button>
         </div>
       ));
-    }, 600);
+    }, 800);
   };
 
   const handleAcceptContract = () => {
     addMessage('user', 'Shartnoma bilan tanishdim');
-    setTimeout(() => {
+    simulateBotTyping(() => {
       setStep('fill_details');
       addMessage('bot', 'Ajoyib! Endi shartnoma tuzish uchun ma\'lumotlaringizni kiriting.');
-    }, 600);
+    });
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -93,25 +103,24 @@ export function BotWizard() {
       </div>
     ));
 
-    setTimeout(() => {
+    simulateBotTyping(() => {
       setStep('confirm');
       addMessage('bot', (
         <div>
            <p className="mb-4">Ma'lumotlar qabul qilindi. Shartnoma loyihasi tayyorlandi. Iltimos, tekshirib tasdiqlang.</p>
-           <Button onClick={handleConfirm} className="w-full bg-green-600 hover:bg-green-700 text-white">
+           <Button onClick={handleConfirm} className="w-full bg-green-500 hover:bg-green-600 text-white">
              <CheckCircle className="w-4 h-4 mr-2" />
              Tasdiqlash va Imzolash
            </Button>
         </div>
       ));
-    }, 800);
+    }, 1500);
   };
 
   const handleConfirm = () => {
     addMessage('user', 'Tasdiqlayman');
     
-    // Simulate processing
-    setTimeout(() => {
+    simulateBotTyping(() => {
       addContract({
         studentName: formData.name,
         age: formData.age,
@@ -127,27 +136,31 @@ export function BotWizard() {
         title: "Muvaffaqiyatli!",
         description: "Shartnoma tuzildi va bazaga kiritildi.",
       });
-    }, 1000);
+    }, 1200);
   };
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-2rem)] lg:h-[800px] gap-4 max-w-7xl mx-auto p-2 lg:p-4">
-      {/* Chat Interface */}
-      <Card className="flex-1 flex flex-col shadow-xl border-0 overflow-hidden bg-white/80 backdrop-blur-sm">
-        <div className="p-4 bg-blue-600 text-white flex items-center gap-3 shadow-md z-10">
-          <div className="bg-white/20 p-2 rounded-full">
+      {/* Chat Interface - Telegram Style */}
+      <Card className="flex-1 flex flex-col shadow-xl border-0 overflow-hidden bg-[#8eace0] backdrop-blur-sm relative">
+        {/* Chat Background Pattern */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" 
+             style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+        </div>
+
+        {/* Header */}
+        <div className="p-3 bg-white flex items-center gap-3 shadow-sm z-10 border-b border-gray-100">
+          <div className="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
             <Bot className="w-6 h-6" />
           </div>
-          <div>
-            <h2 className="font-bold">Zamonaviy Bot</h2>
-            <p className="text-xs text-blue-100 flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              Online
-            </p>
+          <div className="flex-1">
+            <h2 className="font-bold text-gray-800">Zamonaviy Bot</h2>
+            <p className="text-xs text-blue-500 font-medium">bot</p>
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4 bg-slate-50">
+        {/* Messages Area */}
+        <ScrollArea className="flex-1 p-4">
           <div className="space-y-4 pb-4">
             {messages.map((msg) => (
               <motion.div
@@ -157,31 +170,48 @@ export function BotWizard() {
                 className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] lg:max-w-[70%] p-4 rounded-2xl shadow-sm ${
+                  className={`max-w-[85%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm relative ${
                     msg.type === 'user'
-                      ? 'bg-blue-600 text-white rounded-br-none'
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
+                      ? 'bg-[#effdde] text-gray-800 rounded-br-sm'
+                      : 'bg-white text-gray-800 rounded-bl-sm'
                   }`}
                 >
-                  {msg.content}
+                  <div className="text-sm md:text-base">{msg.content}</div>
+                  <div className={`text-[10px] text-gray-400 mt-1 flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.time}
+                    {msg.type === 'user' && <span className="ml-1 text-blue-500">✓✓</span>}
+                  </div>
                 </div>
               </motion.div>
             ))}
+            
+            {isTyping && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                <div className="bg-white p-3 rounded-2xl rounded-bl-sm shadow-sm">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
-        <div className="p-4 bg-white border-t border-gray-100">
+        {/* Input Area / Controls */}
+        <div className="p-2 bg-white border-t border-gray-100">
           <AnimatePresence mode="wait">
             {step === 'welcome' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
+                className="p-2"
               >
-                <Button onClick={handleStart} size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12">
+                <Button onClick={handleStart} size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold h-12 uppercase tracking-wide">
                   Boshlash / Start
-                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </motion.div>
             )}
@@ -192,75 +222,73 @@ export function BotWizard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 onSubmit={handleFormSubmit}
-                className="space-y-4 bg-white p-1 rounded-lg"
+                className="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-200"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">F.I.SH (Familiya Ism)</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                      <Input 
-                        id="name" 
-                        placeholder="Masalan: Azizov Aziz" 
-                        className="pl-9" 
-                        value={formData.name}
-                        onChange={e => setFormData({...formData, name: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefon raqam</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                      <Input 
-                        id="phone" 
-                        placeholder="+998 90 123 45 67" 
-                        className="pl-9" 
-                        value={formData.phone}
-                        onChange={e => setFormData({...formData, phone: e.target.value})}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Yosh</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1 space-y-3">
                     <Input 
-                      id="age" 
-                      type="number" 
-                      placeholder="18" 
-                      value={formData.age}
-                      onChange={e => setFormData({...formData, age: e.target.value})}
+                      placeholder="F.I.SH (Familiya Ism)" 
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      className="bg-white border-none shadow-sm"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="course">Kursni tanlang</Label>
-                    <Select 
-                      value={formData.course} 
-                      onValueChange={(val: CourseLevel) => setFormData({...formData, course: val})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Kursni tanlang" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A0-A1">Beginner (A0-A1)</SelectItem>
-                        <SelectItem value="A1-A2">Elementary (A1-A2)</SelectItem>
-                        <SelectItem value="A2-B1">Pre-Intermediate (A2-B1)</SelectItem>
-                        <SelectItem value="B1-B2">Intermediate (B1-B2)</SelectItem>
-                        <SelectItem value="CEFR-PRO">IELTS / CEFR PRO</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      placeholder="Telefon (+998...)" 
+                      value={formData.phone}
+                      onChange={e => setFormData({...formData, phone: e.target.value})}
+                       className="bg-white border-none shadow-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number"
+                        placeholder="Yosh" 
+                        value={formData.age}
+                        onChange={e => setFormData({...formData, age: e.target.value})}
+                        className="w-20 bg-white border-none shadow-sm"
+                      />
+                      <Select 
+                        value={formData.course} 
+                        onValueChange={(val: CourseLevel) => setFormData({...formData, course: val})}
+                      >
+                        <SelectTrigger className="bg-white border-none shadow-sm flex-1">
+                          <SelectValue placeholder="Kursni tanlang" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A0-A1">Beginner (A0-A1)</SelectItem>
+                          <SelectItem value="A1-A2">Elementary (A1-A2)</SelectItem>
+                          <SelectItem value="A2-B1">Pre-Intermediate (A2-B1)</SelectItem>
+                          <SelectItem value="B1-B2">Intermediate (B1-B2)</SelectItem>
+                          <SelectItem value="CEFR-PRO">IELTS / CEFR PRO</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                  Ma'lumotlarni yuborish
-                  <Send className="w-4 h-4 ml-2" />
+                <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
+                  <Send className="w-4 h-4 mr-2" />
+                  Yuborish
                 </Button>
               </motion.form>
             )}
+
+            {step === 'completed' && (
+              <div className="p-2 text-center text-gray-500 text-sm">
+                Bot o'z ishini yakunladi. Yangi shartnoma uchun sahifani yangilang.
+              </div>
+            )}
           </AnimatePresence>
+          
+          {/* Default Input Bar (Disabled look when bot is controlling flow) */}
+          {!['welcome', 'fill_details'].includes(step) && step !== 'completed' && (
+             <div className="flex items-center gap-2 px-2 pb-2 opacity-50 pointer-events-none">
+               <Paperclip className="w-5 h-5 text-gray-400" />
+               <Input placeholder="Xabar yozish..." className="bg-gray-100 border-none" disabled />
+               <div className="bg-blue-500 p-2 rounded-full text-white">
+                 <Send className="w-4 h-4" />
+               </div>
+             </div>
+          )}
         </div>
       </Card>
 
