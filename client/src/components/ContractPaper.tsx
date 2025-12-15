@@ -166,7 +166,7 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
           {formatContent(filledContent)}
         </div>
 
-        {/* Footer/Signatures - Modern Grid Layout */}
+        {/* Footer - Modern Grid Layout */}
         <div className="mx-8 mb-8 mt-auto">
           <div className="border-t-2 border-blue-900 pt-6">
             <div className="grid grid-cols-2 gap-8">
@@ -187,10 +187,6 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
                     <p>INN: 312 316 714</p>
                   </div>
                 </div>
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <div className="border-b-2 border-gray-400 w-36 mb-1"></div>
-                  <p className="text-[10px] text-gray-400">Imzo va muhr</p>
-                </div>
                 
                 {/* Seal */}
                 <div className="absolute top-4 right-4 w-20 h-20 border-2 border-blue-700 rounded-full flex items-center justify-center opacity-70 rotate-[-8deg]">
@@ -203,7 +199,7 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
               </div>
 
               {/* O'quvchi Section */}
-              <div className="bg-gray-50 rounded-xl p-5">
+              <div className="bg-gray-50 rounded-xl p-5 relative">
                 <h3 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-4">O'quvchi</h3>
                 <div className="text-xs text-gray-600 space-y-2">
                   <div>
@@ -221,9 +217,14 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 pt-4 border-t border-gray-200">
-                  <div className="border-b-2 border-gray-400 w-36 mb-1"></div>
-                  <p className="text-[10px] text-gray-400">Imzo</p>
+                
+                {/* Student Seal */}
+                <div className="absolute top-4 right-4 w-20 h-20 border-2 border-green-600 rounded-full flex items-center justify-center opacity-70 rotate-[8deg]">
+                  <div className="text-center">
+                    <p className="text-[7px] font-bold text-green-600 uppercase">Tasdiqlandi</p>
+                    <div className="w-8 h-[1px] bg-green-600 mx-auto my-0.5"></div>
+                    <p className="text-[5px] text-green-600">2024</p>
+                  </div>
                 </div>
               </div>
             </div>
