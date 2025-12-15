@@ -105,14 +105,17 @@ export function WebWizard() {
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
+      const scale = 3;
       const width = element.offsetWidth || 794;
       const height = element.offsetHeight || 1123;
       
       const imgData = await domtoimage.toPng(element, {
-        width: width,
-        height: height,
+        width: width * scale,
+        height: height * scale,
         bgcolor: '#ffffff',
         style: {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
           backgroundColor: '#ffffff'
         }
       });
@@ -128,7 +131,8 @@ export function WebWizard() {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a4',
+        compress: false
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -139,7 +143,7 @@ export function WebWizard() {
       const imgX = 5;
       const imgY = 5;
       
-      pdf.addImage(imgData, 'PNG', imgX, imgY, pdfImgWidth, Math.min(pdfImgHeight, pdfHeight - 10));
+      pdf.addImage(imgData, 'PNG', imgX, imgY, pdfImgWidth, Math.min(pdfImgHeight, pdfHeight - 10), undefined, 'FAST');
       
       const fileName = createdContract 
         ? `Shartnoma_${createdContract.contractNumber}.pdf`
