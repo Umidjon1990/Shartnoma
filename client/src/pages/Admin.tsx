@@ -34,7 +34,7 @@ export default function Admin() {
             <p className="text-gray-500">Shartnomalar va o'quvchilar nazorati</p>
           </div>
           <Link href="/">
-            <Button variant="outline">Botga qaytish</Button>
+            <Button variant="outline">Saytga qaytish</Button>
           </Link>
         </div>
 
