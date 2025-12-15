@@ -2,7 +2,7 @@ import React from 'react';
 import { useContract } from '@/lib/contract-context';
 import logo from '@assets/zamonaviy_talim_logo.png';
 import { cn } from '@/lib/utils';
-import { Download, MapPin, Phone, Building, CreditCard } from 'lucide-react';
+import { Download, MapPin, Building, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ContractPaperProps {
@@ -28,7 +28,74 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
   });
   const contractNumber = data.number || 'DRAFT';
 
-  const sections = contractTemplate.split(/\n(?=\d+\.\s)/);
+  const filledContent = contractTemplate
+    .replaceAll('{name}', data.name || '_______________')
+    .replaceAll('{age}', data.age || '___')
+    .replaceAll('{course}', data.course || '_______________')
+    .replaceAll('{format}', data.format || 'Online')
+    .replaceAll('{date}', formattedDate)
+    .replaceAll('{number}', contractNumber);
+
+  const formatContent = (text: string) => {
+    const lines = text.split('\n');
+    return lines.map((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (/^\d+\.\s+[A-ZА-ЯЎҚҒҲ\s']+$/.test(trimmedLine)) {
+        const match = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
+        if (match) {
+          return (
+            <div key={index} className="flex items-center gap-3 mt-6 mb-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
+                {match[1]}
+              </span>
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{match[2]}</h3>
+            </div>
+          );
+        }
+      }
+      
+      if (trimmedLine.startsWith('ONLAYN O\'QUV SHARTNOMA')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('Sana:')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('O\'rtasida:')) {
+        return null;
+      }
+      if (trimmedLine.includes('bundan keyin "Markaz"')) {
+        return null;
+      }
+      if (trimmedLine.includes('bundan keyin "O\'quvchi"')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('O\'quv markazi ma\'lumotlari')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('Manzil:') || trimmedLine.startsWith('INN:') || 
+          trimmedLine.startsWith('BANK:') || trimmedLine.startsWith('Hisob raqam:')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('O\'quvchining ma\'lumotlari')) {
+        return null;
+      }
+      if (trimmedLine.startsWith('F.I.SH:') || trimmedLine.startsWith('Yoshi:') || 
+          trimmedLine.startsWith('Kurs:') || trimmedLine.startsWith('Format:')) {
+        return null;
+      }
+      
+      if (!trimmedLine) {
+        return <div key={index} className="h-2"></div>;
+      }
+      
+      return (
+        <p key={index} className="text-sm text-gray-700 leading-relaxed ml-10">
+          {trimmedLine}
+        </p>
+      );
+    });
+  };
 
   return (
     <div className={cn("flex flex-col items-center gap-6", className)}>
@@ -48,7 +115,7 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-wide">ZAMONAVIY TA'LIM</h1>
-                <p className="text-blue-200 text-sm mt-1">Arab • Ingliz • Rus Tillari</p>
+                <p className="text-blue-200 text-sm mt-1">Arab - Ingliz - Rus Tillari</p>
               </div>
             </div>
             <div className="text-right">
@@ -95,48 +162,8 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
         </div>
 
         {/* Contract Content */}
-        <div className="px-8 pb-6 space-y-4">
-          {sections.map((section, index) => {
-            if (!section.trim()) return null;
-            const titleMatch = section.match(/^(\d+)\.\s*([A-ZА-ЯЎҚҒҲ\s']+)/);
-            
-            if (titleMatch) {
-              const [, num, title] = titleMatch;
-              const content = section.replace(/^\d+\.\s*[A-ZА-ЯЎҚҒҲ\s']+\n?/, '');
-              
-              return (
-                <div key={index} className="group">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="flex-shrink-0 w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
-                      {num}
-                    </span>
-                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{title.trim()}</h3>
-                  </div>
-                  <div className="ml-10 text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                    {content.trim()
-                      .replaceAll('{name}', data.name || '_______________')
-                      .replaceAll('{age}', data.age || '___')
-                      .replaceAll('{course}', data.course || '_______________')
-                      .replaceAll('{format}', data.format || 'Online')
-                      .replaceAll('{date}', formattedDate)
-                      .replaceAll('{number}', contractNumber)}
-                  </div>
-                </div>
-              );
-            }
-            
-            return (
-              <div key={index} className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {section.trim()
-                  .replaceAll('{name}', data.name || '_______________')
-                  .replaceAll('{age}', data.age || '___')
-                  .replaceAll('{course}', data.course || '_______________')
-                  .replaceAll('{format}', data.format || 'Online')
-                  .replaceAll('{date}', formattedDate)
-                  .replaceAll('{number}', contractNumber)}
-              </div>
-            );
-          })}
+        <div className="px-8 pb-6">
+          {formatContent(filledContent)}
         </div>
 
         {/* Footer/Signatures - Modern Grid Layout */}
@@ -152,11 +179,11 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
                 <div className="text-xs text-gray-600 space-y-2">
                   <p className="font-semibold text-gray-800">MCHJ "Zamonaviy Ta'lim"</p>
                   <div className="flex items-start gap-2">
-                    <MapPin className="w-3 h-3 mt-0.5 text-blue-600" />
+                    <MapPin className="w-3 h-3 mt-0.5 text-blue-600 flex-shrink-0" />
                     <p>Namangan vil., Uychi tum., Bog' MFY, Savdogar ko'chasi, 41-uy</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CreditCard className="w-3 h-3 text-blue-600" />
+                    <CreditCard className="w-3 h-3 text-blue-600 flex-shrink-0" />
                     <p>INN: 312 316 714</p>
                   </div>
                 </div>
@@ -166,7 +193,7 @@ export function ContractPaper({ data, className, onDownload }: ContractPaperProp
                 </div>
                 
                 {/* Seal */}
-                <div className="absolute top-4 right-4 w-20 h-20 border-3 border-blue-700 rounded-full flex items-center justify-center opacity-70 rotate-[-8deg]">
+                <div className="absolute top-4 right-4 w-20 h-20 border-2 border-blue-700 rounded-full flex items-center justify-center opacity-70 rotate-[-8deg]">
                   <div className="text-center">
                     <p className="text-[7px] font-bold text-blue-700 uppercase">Tasdiqlandi</p>
                     <div className="w-8 h-[1px] bg-blue-700 mx-auto my-0.5"></div>

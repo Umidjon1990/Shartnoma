@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,24 +7,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles } from 'lucide-react';
+import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles, Loader2 } from 'lucide-react';
 import { useContract, CourseLevel } from '@/lib/contract-context';
 import { useMutation } from '@tanstack/react-query';
 import { createContract } from '@/lib/api';
 import { ContractPaper } from '@/components/ContractPaper';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import type { Contract } from '@shared/schema';
 
 type Step = 1 | 2 | 3 | 4;
 
 export function WebWizard() {
   const [step, setStep] = useState<Step>(1);
+  const [createdContract, setCreatedContract] = useState<Contract | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { contractTemplate } = useContract();
   const { toast } = useToast();
+  const contractRef = useRef<HTMLDivElement>(null);
   
   const createMutation = useMutation({
     mutationFn: createContract,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setCreatedContract(data);
       setStep(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({
@@ -78,6 +85,58 @@ export function WebWizard() {
       format: 'Online',
       status: 'signed'
     });
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!contractRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(contractRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 0;
+      
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      
+      const fileName = createdContract 
+        ? `Shartnoma_${createdContract.contractNumber}.pdf`
+        : `Shartnoma_${formData.name.replace(/\s+/g, '_')}.pdf`;
+      
+      pdf.save(fileName);
+      
+      toast({
+        title: "Muvaffaqiyatli!",
+        description: "Shartnoma PDF formatida yuklandi.",
+        className: "bg-green-50 border-green-200"
+      });
+    } catch (error) {
+      console.error('PDF download error:', error);
+      toast({
+        title: "Xatolik",
+        description: "PDF yuklab olishda xatolik yuz berdi",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const steps = [
@@ -280,7 +339,7 @@ export function WebWizard() {
             </div>
 
             <div className="flex justify-center bg-gray-200/50 p-4 rounded-xl border border-gray-200 overflow-hidden">
-               <div className="scale-[0.65] md:scale-[0.85] origin-top transform-gpu shadow-xl">
+               <div className="scale-[0.5] md:scale-[0.7] origin-top transform-gpu shadow-xl">
                  <ContractPaper 
                    data={{
                      name: formData.name,
@@ -298,9 +357,23 @@ export function WebWizard() {
                 <ChevronLeft className="w-5 h-5 mr-2" />
                 Tahrirlash
               </Button>
-              <Button onClick={handleSubmit} size="lg" className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-lg text-lg h-14">
-                <CheckCircle className="w-6 h-6 mr-2" />
-                Tasdiqlash va Imzolash
+              <Button 
+                onClick={handleSubmit} 
+                size="lg" 
+                className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-lg text-lg h-14"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                    Yuklanmoqda...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-6 h-6 mr-2" />
+                    Tasdiqlash va Imzolash
+                  </>
+                )}
               </Button>
             </div>
           </motion.div>
@@ -311,24 +384,57 @@ export function WebWizard() {
             key="step4"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
+            className="space-y-8"
           >
-            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="text-center py-8">
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Tabriklaymiz!</h2>
+              <p className="text-lg text-gray-600 max-w-lg mx-auto">
+                Shartnoma muvaffaqiyatli rasmiylashtirildi. Siz rasman "Zamonaviy Ta'lim" o'quvchisisiz!
+              </p>
+              {createdContract && (
+                <p className="text-blue-600 font-semibold mt-2">
+                  Shartnoma raqami: {createdContract.contractNumber}
+                </p>
+              )}
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Tabriklaymiz!</h2>
-            <p className="text-lg text-gray-600 max-w-lg mx-auto mb-8">
-              Shartnoma muvaffaqiyatli rasmiylashtirildi. Siz rasman "Zamonaviy Ta'lim" o'quvchisisiz!
-            </p>
+
+            {/* Contract Preview for Download */}
+            <div className="flex justify-center bg-gray-100 p-4 rounded-xl border overflow-auto">
+              <div ref={contractRef} className="scale-[0.5] md:scale-[0.6] origin-top transform-gpu">
+                <ContractPaper 
+                  data={{
+                    name: formData.name,
+                    age: formData.age,
+                    course: formData.course,
+                    format: 'Online',
+                    number: createdContract?.contractNumber || 'SIGNED',
+                    date: createdContract?.createdAt ? new Date(createdContract.createdAt).toLocaleDateString('uz-UZ') : undefined
+                  }}
+                />
+              </div>
+            </div>
             
             <div className="flex flex-col md:flex-row justify-center gap-4">
               <Button 
                 size="lg" 
                 className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-8 text-lg shadow-xl"
-                onClick={() => toast({title: "Yuklanmoqda...", description: "Shartnoma yuklanmoqda"})}
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
               >
-                <Download className="w-6 h-6 mr-2" />
-                Shartnomani Yuklab Olish
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                    Yuklanmoqda...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-6 h-6 mr-2" />
+                    Shartnomani Yuklab Olish
+                  </>
+                )}
               </Button>
               <Button 
                 variant="outline" 
@@ -336,6 +442,7 @@ export function WebWizard() {
                 className="h-14 px-8 text-lg"
                 onClick={() => {
                    setStep(1);
+                   setCreatedContract(null);
                    setFormData({ name: '', phone: '', age: '', course: '' as CourseLevel, agreed: false });
                 }}
               >
