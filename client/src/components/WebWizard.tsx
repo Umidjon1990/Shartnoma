@@ -92,14 +92,21 @@ export function WebWizard() {
     
     setIsDownloading(true);
     try {
-      const canvas = await html2canvas(contractRef.current, {
-        scale: 2,
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const element = contractRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
         useCORS: true,
+        allowTaint: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        imageTimeout: 15000,
+        removeContainer: true,
+        foreignObjectRendering: false
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -114,7 +121,7 @@ export function WebWizard() {
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
       const imgY = 0;
       
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
       
       const fileName = createdContract 
         ? `Shartnoma_${createdContract.contractNumber}.pdf`
@@ -127,11 +134,11 @@ export function WebWizard() {
         description: "Shartnoma PDF formatida yuklandi.",
         className: "bg-green-50 border-green-200"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('PDF download error:', error);
       toast({
         title: "Xatolik",
-        description: "PDF yuklab olishda xatolik yuz berdi",
+        description: error?.message || "PDF yuklab olishda xatolik yuz berdi",
         variant: "destructive"
       });
     } finally {
@@ -401,9 +408,25 @@ export function WebWizard() {
               )}
             </div>
 
-            {/* Contract Preview for Download */}
+            {/* Hidden Full-Size Contract for PDF Export */}
+            <div className="absolute -left-[9999px] -top-[9999px]">
+              <div ref={contractRef}>
+                <ContractPaper 
+                  data={{
+                    name: formData.name,
+                    age: formData.age,
+                    course: formData.course,
+                    format: 'Online',
+                    number: createdContract?.contractNumber || 'SIGNED',
+                    date: createdContract?.createdAt ? new Date(createdContract.createdAt).toLocaleDateString('uz-UZ') : undefined
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Contract Preview (Visible, Scaled) */}
             <div className="flex justify-center bg-gray-100 p-4 rounded-xl border overflow-auto">
-              <div ref={contractRef} className="scale-[0.5] md:scale-[0.6] origin-top transform-gpu">
+              <div className="scale-[0.5] md:scale-[0.6] origin-top transform-gpu">
                 <ContractPaper 
                   data={{
                     name: formData.name,
