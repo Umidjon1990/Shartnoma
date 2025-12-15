@@ -409,8 +409,8 @@ export function WebWizard() {
             </div>
 
             {/* Hidden Full-Size Contract for PDF Export */}
-            <div className="absolute -left-[9999px] -top-[9999px]">
-              <div ref={contractRef}>
+            <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+              <div ref={contractRef} style={{ backgroundColor: '#ffffff', color: '#1f2937' }}>
                 <ContractPaper 
                   data={{
                     name: formData.name,
