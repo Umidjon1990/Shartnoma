@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles, Loader2 } from 'lucide-react';
 import { useContract, CourseLevel } from '@/lib/contract-context';
 import { useMutation } from '@tanstack/react-query';
@@ -14,8 +13,6 @@ import { createContract } from '@/lib/api';
 import { ContractPaper } from '@/components/ContractPaper';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import domtoimage from 'dom-to-image-more';
-import jsPDF from 'jspdf';
 import type { Contract } from '@shared/schema';
 
 type Step = 1 | 2 | 3 | 4;
@@ -26,7 +23,6 @@ export function WebWizard() {
   const [isDownloading, setIsDownloading] = useState(false);
   const { contractTemplate } = useContract();
   const { toast } = useToast();
-  const contractRef = useRef<HTMLDivElement>(null);
   
   const createMutation = useMutation({
     mutationFn: createContract,
@@ -88,96 +84,25 @@ export function WebWizard() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!contractRef.current) return;
+    if (!createdContract) return;
     
     setIsDownloading(true);
     try {
-      const element = contractRef.current;
-      const parentElement = element.parentElement;
+      const response = await fetch(`/api/contracts/${createdContract.id}/pdf`);
       
-      if (parentElement) {
-        parentElement.style.position = 'fixed';
-        parentElement.style.left = '0';
-        parentElement.style.top = '0';
-        parentElement.style.zIndex = '-1';
-        parentElement.style.opacity = '1';
+      if (!response.ok) {
+        throw new Error('PDF yaratishda xato');
       }
       
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const scale = 3;
-      const width = element.offsetWidth || 794;
-      const height = element.offsetHeight || 1123;
-      
-      const dataUrl = await domtoimage.toPng(element, {
-        width: width * scale,
-        height: height * scale,
-        bgcolor: '#ffffff',
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          backgroundColor: '#ffffff'
-        }
-      });
-      
-      if (parentElement) {
-        parentElement.style.position = 'absolute';
-        parentElement.style.left = '-9999px';
-        parentElement.style.top = '-9999px';
-        parentElement.style.zIndex = '';
-        parentElement.style.opacity = '';
-      }
-      
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => { img.onload = resolve; });
-      
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 8;
-      const usableWidth = pdfWidth - (margin * 2);
-      const usableHeight = pdfHeight - (margin * 2);
-      
-      const imgAspect = img.height / img.width;
-      const pdfImgWidth = usableWidth;
-      const pdfImgHeight = pdfImgWidth * imgAspect;
-      
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
-      
-      const pageHeightInPx = (usableHeight / pdfImgHeight) * img.height;
-      const totalPages = Math.ceil(img.height / pageHeightInPx);
-      
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage();
-        }
-        
-        const sourceY = page * pageHeightInPx;
-        const sourceHeight = Math.min(pageHeightInPx, img.height - sourceY);
-        const destHeight = (sourceHeight / img.height) * pdfImgHeight;
-        
-        canvas.width = img.width;
-        canvas.height = sourceHeight;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, img.width, sourceHeight);
-        
-        const pageData = canvas.toDataURL('image/png', 1.0);
-        pdf.addImage(pageData, 'PNG', margin, margin, pdfImgWidth, destHeight);
-      }
-      
-      const fileName = createdContract 
-        ? `Shartnoma_${createdContract.contractNumber}.pdf`
-        : `Shartnoma_${formData.name.replace(/\s+/g, '_')}.pdf`;
-      
-      pdf.save(fileName);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Shartnoma_${createdContract.contractNumber}_${formData.name.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
       
       toast({
         title: "Muvaffaqiyatli!",
@@ -186,10 +111,9 @@ export function WebWizard() {
       });
     } catch (error: any) {
       console.error('PDF download error:', error);
-      const errorMessage = error?.message || error?.toString() || "PDF yuklab olishda xatolik yuz berdi";
       toast({
         title: "Xatolik",
-        description: errorMessage,
+        description: "PDF yuklab olishda xatolik yuz berdi",
         variant: "destructive"
       });
     } finally {
@@ -465,24 +389,7 @@ export function WebWizard() {
               )}
             </div>
 
-            {/* Hidden Full-Size Contract for PDF Export */}
-            <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-              <div ref={contractRef} style={{ backgroundColor: '#ffffff', color: '#1f2937', width: '794px' }}>
-                <ContractPaper 
-                  data={{
-                    name: formData.name,
-                    age: formData.age,
-                    course: formData.course,
-                    format: 'Online',
-                    number: createdContract?.contractNumber || 'SIGNED',
-                    date: createdContract?.createdAt ? new Date(createdContract.createdAt).toLocaleDateString('uz-UZ') : undefined
-                  }}
-                  forPdf={true}
-                />
-              </div>
-            </div>
-
-            {/* Contract Preview (Visible, Responsive) */}
+            {/* Contract Preview */}
             <div className="overflow-x-auto bg-gray-100 rounded-xl border p-2 md:p-4">
               <div className="min-w-[320px] md:min-w-0">
                 <ContractPaper 
