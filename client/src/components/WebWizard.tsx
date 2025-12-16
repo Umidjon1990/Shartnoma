@@ -239,49 +239,54 @@ export function WebWizard() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
           >
-            <Card className="border-0 shadow-lg overflow-hidden">
-              <div className="bg-blue-600 p-6 text-white">
-                <CardTitle className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-                  <FileText className="w-8 h-8" />
+            <div className="space-y-6">
+              <div className="bg-blue-600 p-4 md:p-6 text-white rounded-xl shadow-lg">
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3">
+                  <FileText className="w-6 h-6 md:w-8 md:h-8" />
                   Ommaviy Oferta
-                </CardTitle>
-                <CardDescription className="text-blue-100 mt-2 text-base">
+                </h2>
+                <p className="text-blue-100 mt-2 text-sm md:text-base">
                   Iltimos, shartnoma shartlari bilan diqqat bilan tanishib chiqing.
-                </CardDescription>
+                </p>
               </div>
-              <CardContent className="p-0">
-                <ScrollArea className="h-[400px] md:h-[500px] w-full p-6 bg-slate-50">
-                  <div className="prose prose-sm md:prose-base max-w-none text-gray-700 font-serif leading-relaxed whitespace-pre-wrap">
-                    {contractTemplate}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-              <CardFooter className="flex flex-col md:flex-row gap-4 p-6 border-t bg-white items-center justify-between">
-                <div className="flex items-center space-x-3 w-full md:w-auto p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setFormData({...formData, agreed: !formData.agreed})}>
-                  <Checkbox 
-                    id="terms" 
-                    checked={formData.agreed}
-                    onCheckedChange={(checked) => setFormData({...formData, agreed: checked as boolean})}
-                    className="w-6 h-6 border-2 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                  />
-                  <Label 
-                    htmlFor="terms" 
-                    className="text-sm md:text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    Shartnoma shartlariga roziman
-                  </Label>
+              
+              <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                <div className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {contractTemplate}
                 </div>
-                <Button 
-                  onClick={handleNext} 
-                  disabled={!formData.agreed}
-                  size="lg"
-                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all hover:scale-[1.02]"
-                >
-                  Davom etish
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                <div className="flex flex-col gap-4">
+                  <div 
+                    className="flex items-center space-x-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" 
+                    onClick={() => setFormData({...formData, agreed: !formData.agreed})}
+                  >
+                    <Checkbox 
+                      id="terms" 
+                      checked={formData.agreed}
+                      onCheckedChange={(checked) => setFormData({...formData, agreed: checked as boolean})}
+                      className="w-6 h-6 border-2 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                    />
+                    <Label 
+                      htmlFor="terms" 
+                      className="text-sm md:text-base font-medium leading-none cursor-pointer"
+                    >
+                      Shartnoma shartlariga roziman
+                    </Label>
+                  </div>
+                  <Button 
+                    onClick={handleNext} 
+                    disabled={!formData.agreed}
+                    size="lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all"
+                  >
+                    Davom etish
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -396,42 +401,43 @@ export function WebWizard() {
               </div>
             </div>
 
-            <div className="flex justify-center bg-gray-200/50 p-4 rounded-xl border border-gray-200 overflow-hidden">
-               <div className="scale-[0.5] md:scale-[0.7] origin-top transform-gpu shadow-xl">
-                 <ContractPaper 
-                   data={{
-                     name: formData.name,
-                     age: formData.age,
-                     course: formData.course,
-                     format: 'Online',
-                     number: 'DRAFT'
-                   }}
-                 />
-               </div>
+            <div className="overflow-x-auto bg-gray-100 rounded-xl border border-gray-200 p-2 md:p-4">
+              <div className="min-w-[320px] md:min-w-0">
+                <ContractPaper 
+                  data={{
+                    name: formData.name,
+                    age: formData.age,
+                    course: formData.course,
+                    format: 'Online',
+                    number: 'DRAFT'
+                  }}
+                  className="mx-auto max-w-full md:max-w-[600px]"
+                />
+              </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 justify-between pt-4">
-              <Button variant="outline" onClick={handleBack} size="lg" className="w-full md:w-auto">
-                <ChevronLeft className="w-5 h-5 mr-2" />
-                Tahrirlash
-              </Button>
+            <div className="flex flex-col gap-3 pt-4">
               <Button 
                 onClick={handleSubmit} 
                 size="lg" 
-                className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-lg text-lg h-14"
+                className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg text-base md:text-lg h-12 md:h-14"
                 disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? (
                   <>
-                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 mr-2 animate-spin" />
                     Yuklanmoqda...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-6 h-6 mr-2" />
+                    <CheckCircle className="w-5 h-5 md:w-6 md:h-6 mr-2" />
                     Tasdiqlash va Imzolash
                   </>
                 )}
+              </Button>
+              <Button variant="outline" onClick={handleBack} size="lg" className="w-full h-12">
+                <ChevronLeft className="w-5 h-5 mr-2" />
+                Tahrirlash
               </Button>
             </div>
           </motion.div>
@@ -461,7 +467,7 @@ export function WebWizard() {
 
             {/* Hidden Full-Size Contract for PDF Export */}
             <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-              <div ref={contractRef} style={{ backgroundColor: '#ffffff', color: '#1f2937' }}>
+              <div ref={contractRef} style={{ backgroundColor: '#ffffff', color: '#1f2937', width: '794px' }}>
                 <ContractPaper 
                   data={{
                     name: formData.name,
@@ -471,13 +477,14 @@ export function WebWizard() {
                     number: createdContract?.contractNumber || 'SIGNED',
                     date: createdContract?.createdAt ? new Date(createdContract.createdAt).toLocaleDateString('uz-UZ') : undefined
                   }}
+                  forPdf={true}
                 />
               </div>
             </div>
 
-            {/* Contract Preview (Visible, Scaled) */}
-            <div className="flex justify-center bg-gray-100 p-4 rounded-xl border overflow-auto">
-              <div className="scale-[0.5] md:scale-[0.6] origin-top transform-gpu">
+            {/* Contract Preview (Visible, Responsive) */}
+            <div className="overflow-x-auto bg-gray-100 rounded-xl border p-2 md:p-4">
+              <div className="min-w-[320px] md:min-w-0">
                 <ContractPaper 
                   data={{
                     name: formData.name,
@@ -487,25 +494,26 @@ export function WebWizard() {
                     number: createdContract?.contractNumber || 'SIGNED',
                     date: createdContract?.createdAt ? new Date(createdContract.createdAt).toLocaleDateString('uz-UZ') : undefined
                   }}
+                  className="mx-auto max-w-full md:max-w-[600px]"
                 />
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row justify-center gap-4">
+            <div className="flex flex-col gap-3">
               <Button 
                 size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-8 text-lg shadow-xl"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 md:h-14 text-base md:text-lg shadow-xl"
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
               >
                 {isDownloading ? (
                   <>
-                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 mr-2 animate-spin" />
                     Yuklanmoqda...
                   </>
                 ) : (
                   <>
-                    <Download className="w-6 h-6 mr-2" />
+                    <Download className="w-5 h-5 md:w-6 md:h-6 mr-2" />
                     Shartnomani Yuklab Olish
                   </>
                 )}
@@ -513,7 +521,7 @@ export function WebWizard() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="h-14 px-8 text-lg"
+                className="w-full h-12 text-base"
                 onClick={() => {
                    setStep(1);
                    setCreatedContract(null);
