@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useContract } from '@/lib/contract-context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchContracts } from '@/lib/api';
 import type { Contract } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,20 +11,127 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Users, Calendar, Download, Send, Globe, MessageSquare, Loader2, Eye } from 'lucide-react';
-import { Link } from 'wouter';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Search, Users, Calendar, Download, Send, Globe, Loader2, Eye, Trash2, Lock } from 'lucide-react';
 import { ContractPaper } from '@/components/ContractPaper';
 
+function LoginPage({ onLogin }: { onLogin: (token: string) => void }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem('adminToken', data.token);
+        onLogin(data.token);
+      } else {
+        setError(data.error || 'Login xatosi');
+      }
+    } catch (err) {
+      setError('Server bilan bog\'lanishda xato');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <Lock className="w-6 h-6 text-blue-600" />
+          </div>
+          <CardTitle>Admin Panel</CardTitle>
+          <CardDescription>Tizimga kirish uchun login va parolni kiriting</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Login</label>
+              <Input 
+                type="text" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+                data-testid="input-username"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Parol</label>
+              <Input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••"
+                data-testid="input-password"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kirish
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Admin() {
+  const [token, setToken] = useState<string | null>(null);
   const { contractTemplate, updateContractTemplate } = useContract();
   const [searchTerm, setSearchTerm] = useState('');
   const [templateText, setTemplateText] = useState(contractTemplate);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  
+  const [deleteContract, setDeleteContract] = useState<Contract | null>(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('adminToken');
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, []);
+
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
     queryFn: fetchContracts,
+    enabled: !!token,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/contracts/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('O\'chirishda xato');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      setDeleteContract(null);
+    }
   });
 
   const filteredContracts = contracts.filter(c => 
@@ -41,9 +148,7 @@ export default function Admin() {
     setDownloadingId(contract.id);
     try {
       const response = await fetch(`/api/contracts/${contract.id}/pdf`);
-      if (!response.ok) {
-        throw new Error('PDF yaratishda xato');
-      }
+      if (!response.ok) throw new Error('PDF yaratishda xato');
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -62,6 +167,15 @@ export default function Admin() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    setToken(null);
+  };
+
+  if (!token) {
+    return <LoginPage onLogin={setToken} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -70,9 +184,7 @@ export default function Admin() {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Panel</h1>
             <p className="text-gray-500 text-sm md:text-base">Shartnomalar va o'quvchilar nazorati</p>
           </div>
-          <Link href="/">
-            <Button variant="outline">Saytga qaytish</Button>
-          </Link>
+          <Button variant="outline" onClick={handleLogout}>Chiqish</Button>
         </div>
 
         <Tabs defaultValue="contracts" className="w-full">
@@ -91,7 +203,6 @@ export default function Admin() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{contracts.length}</div>
-                  <p className="text-xs text-muted-foreground">+2 bugun</p>
                 </CardContent>
               </Card>
               <Card>
@@ -198,7 +309,14 @@ export default function Admin() {
                                 ) : (
                                   <Download className="h-4 w-4" />
                                 )}
-                                <span className="hidden md:inline">PDF</span>
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => setDeleteContract(contract)}
+                                data-testid={`button-delete-${contract.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -241,33 +359,17 @@ export default function Admin() {
                      Telegram Bot Integratsiyasi
                    </CardTitle>
                    <CardDescription>
-                     Yangi shartnomalar haqida xabarnoma olish uchun sozlangan
+                     Railway Variables orqali sozlang
                    </CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                       <p className="text-sm font-medium">Bot Token</p>
-                       <Input type="password" placeholder="123456789:ABCdefGHIjklMNOpqrs..." className="bg-white" />
-                       <p className="text-[10px] text-gray-500">BotFather dan olingan token</p>
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                      <p className="font-medium mb-2">Railway Variables-da sozlang:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><code>TELEGRAM_BOT_TOKEN</code> - Bot token</li>
+                        <li><code>TELEGRAM_CHAT_ID</code> - Chat/Group ID</li>
+                      </ul>
                     </div>
-
-                    <div className="space-y-2">
-                       <p className="text-sm font-medium">Chat ID (Admin)</p>
-                       <Input placeholder="-100123456789" className="bg-white" />
-                       <p className="text-[10px] text-gray-500">Xabarlar boradigan guruh yoki user ID</p>
-                    </div>
-
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between mt-4">
-                      <div>
-                        <p className="font-medium text-green-900">Holat: Faol</p>
-                        <p className="text-xs text-green-700">Xabarlar yuborilmoqda</p>
-                      </div>
-                      <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
-                    </div>
-
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Sozlamalarni Saqlash
-                    </Button>
                  </CardContent>
                </Card>
 
@@ -275,24 +377,20 @@ export default function Admin() {
                  <CardHeader>
                    <CardTitle className="flex items-center gap-2">
                      <Globe className="w-6 h-6 text-gray-500" />
-                     Web Integratsiya
+                     Admin Sozlamalari
                    </CardTitle>
                    <CardDescription>
-                     Saytingizga vidjet o'rnatish
+                     Railway Variables orqali sozlang
                    </CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                       <p className="text-sm font-medium">Embed Code</p>
-                       <Textarea 
-                         readOnly 
-                         className="bg-gray-50 font-mono text-xs min-h-[100px]" 
-                         value={`<script src="https://zamonaviy.uz/widget.js"></script>\n<div id="contract-bot"></div>`}
-                       />
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                      <p className="font-medium mb-2">Railway Variables-da sozlang:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><code>ADMIN_USERNAME</code> - Admin login (default: admin)</li>
+                        <li><code>ADMIN_PASSWORD</code> - Admin parol (default: demo123)</li>
+                      </ul>
                     </div>
-                    <Button className="w-full">
-                      Nusxa Olish
-                    </Button>
                  </CardContent>
                </Card>
              </div>
@@ -350,6 +448,28 @@ export default function Admin() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteContract} onOpenChange={() => setDeleteContract(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Shartnomani o'chirish</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteContract?.studentName} ning shartnomasi ({deleteContract?.contractNumber}) o'chiriladi. Bu amalni qaytarib bo'lmaydi.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteContract && deleteMutation.mutate(deleteContract.id)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              O'chirish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

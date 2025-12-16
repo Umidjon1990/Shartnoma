@@ -151,6 +151,90 @@ export async function registerRoutes(
     }
   });
 
+  // Admin authentication with signed token
+  const crypto = await import('crypto');
+  const SECRET_KEY = process.env.ADMIN_SECRET || 'zamonaviy-talim-secret-2025';
+  
+  const generateToken = (username: string): string => {
+    const payload = `${username}:${Date.now()}`;
+    const hmac = crypto.createHmac('sha256', SECRET_KEY);
+    hmac.update(payload);
+    const signature = hmac.digest('hex');
+    return Buffer.from(`${payload}:${signature}`).toString('base64');
+  };
+  
+  const verifyToken = (token: string): boolean => {
+    try {
+      const decoded = Buffer.from(token, 'base64').toString('utf8');
+      const parts = decoded.split(':');
+      if (parts.length !== 3) return false;
+      
+      const [username, timestamp, signature] = parts;
+      const payload = `${username}:${timestamp}`;
+      const hmac = crypto.createHmac('sha256', SECRET_KEY);
+      hmac.update(payload);
+      const expectedSignature = hmac.digest('hex');
+      
+      if (signature !== expectedSignature) return false;
+      
+      // Token expires after 24 hours
+      const tokenAge = Date.now() - parseInt(timestamp);
+      if (tokenAge > 24 * 60 * 60 * 1000) return false;
+      
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  app.post("/api/admin/login", (req, res) => {
+    const { username, password } = req.body;
+    const adminUser = process.env.ADMIN_USERNAME || "admin";
+    const adminPass = process.env.ADMIN_PASSWORD || "demo123";
+    
+    if (username === adminUser && password === adminPass) {
+      const token = generateToken(username);
+      res.json({ success: true, token });
+    } else {
+      res.status(401).json({ error: "Noto'g'ri login yoki parol" });
+    }
+  });
+
+  // Admin auth middleware with token verification
+  const requireAdmin = (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: "Avtorizatsiya talab qilinadi" });
+    }
+    
+    const token = authHeader.substring(7);
+    if (!verifyToken(token)) {
+      return res.status(401).json({ error: "Token noto'g'ri yoki muddati o'tgan" });
+    }
+    
+    next();
+  };
+
+  // Delete contract (admin only)
+  app.delete("/api/contracts/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid contract ID" });
+      }
+      
+      const deleted = await storage.deleteContract(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Contract not found" });
+      }
+      
+      res.json({ success: true, message: "Shartnoma o'chirildi" });
+    } catch (error) {
+      console.error("Error deleting contract:", error);
+      res.status(500).json({ error: "Failed to delete contract" });
+    }
+  });
+
   return httpServer;
 }
 

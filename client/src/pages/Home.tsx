@@ -1,7 +1,6 @@
 import React from 'react';
 import { WebWizard } from '@/components/WebWizard';
-import { Link } from 'wouter';
-import { ShieldCheck, GraduationCap } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -15,12 +14,6 @@ export default function Home() {
             </div>
             <span>Zamonaviy Ta'lim</span>
           </div>
-          <nav className="flex gap-4 text-sm font-medium">
-             <Link href="/admin" className="text-gray-500 hover:text-blue-600 flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-50 transition-colors">
-               <ShieldCheck className="w-4 h-4" />
-               <span className="hidden md:inline">Admin Panel</span>
-             </Link>
-          </nav>
         </div>
       </header>
 

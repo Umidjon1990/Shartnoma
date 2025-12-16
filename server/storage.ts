@@ -11,6 +11,7 @@ export interface IStorage {
   getAllContracts(): Promise<Contract[]>;
   getContractById(id: number): Promise<Contract | undefined>;
   createContract(contract: InsertContract): Promise<Contract>;
+  deleteContract(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -50,6 +51,11 @@ export class DatabaseStorage implements IStorage {
     }).returning();
     
     return contract;
+  }
+
+  async deleteContract(id: number): Promise<boolean> {
+    const result = await db.delete(contracts).where(eq(contracts.id, id)).returning();
+    return result.length > 0;
   }
 }
 
