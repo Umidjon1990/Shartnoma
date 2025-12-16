@@ -1,15 +1,15 @@
 [phases.setup]
 nixPkgs = ["nodejs_20", "chromium", "glib", "nss", "nspr", "at-spi2-atk", "cups", "libdrm", "gtk3", "pango", "cairo", "mesa", "expat", "alsa-lib", "dbus", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "xorg.libxcb", "libxkbcommon"]
 
-[phases.build]
-cmds = ["npm install", "npm run build"]
-
 [phases.install]
 cmds = ["npm ci --production=false"]
 
+[phases.build]
+cmds = ["npm run build"]
+
 [start]
-cmd = "npm start"
+cmd = "npm run db:push && npm start"
 
 [variables]
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-PUPPETEER_EXECUTABLE_PATH = "/nix/store/chromium/bin/chromium"
+PUPPETEER_EXECUTABLE_PATH = "/nix/var/nix/profiles/default/bin/chromium"
