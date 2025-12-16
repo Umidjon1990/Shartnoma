@@ -104,7 +104,8 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
   return (
     <div className={cn("flex flex-col items-center gap-4 md:gap-6", className)}>
       <div className={cn(
-        "bg-white text-gray-800 w-full shadow-xl md:shadow-2xl relative mx-auto overflow-hidden rounded-lg md:rounded-none",
+        "bg-white text-gray-800 w-full relative mx-auto overflow-hidden",
+        !forPdf && "shadow-xl md:shadow-2xl rounded-lg md:rounded-none",
         forPdf ? "max-w-[210mm] min-h-[297mm]" : "max-w-full"
       )} style={{ fontFamily: "'Inter', sans-serif" }}>
         
@@ -163,7 +164,8 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
 
         {/* Document Title */}
         <div className={cn(
-          "text-center py-4 md:py-6 border-b border-gray-200",
+          "text-center py-4 md:py-6",
+          !forPdf && "border-b border-gray-200",
           forPdf && "py-6"
         )}>
           <h2 className={cn(
@@ -178,7 +180,8 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
 
         {/* Parties Info Card */}
         <div className={cn(
-          "mx-3 md:mx-8 my-4 md:my-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 md:p-5 border border-blue-100",
+          "mx-3 md:mx-8 my-4 md:my-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 md:p-5",
+          !forPdf && "border border-blue-100",
           forPdf && "mx-8 my-6 p-5"
         )}>
           <div className="grid grid-cols-2 gap-3 md:gap-6">
@@ -204,7 +207,8 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
             </div>
           </div>
           <div className={cn(
-            "grid grid-cols-3 gap-2 md:gap-4 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-blue-200",
+            "grid grid-cols-3 gap-2 md:gap-4 mt-3 md:mt-4 pt-3 md:pt-4",
+            !forPdf && "border-t border-blue-200",
             forPdf && "gap-4 mt-4 pt-4"
           )}>
             <div>
@@ -236,7 +240,8 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
           forPdf && "mx-8 mb-8"
         )}>
           <div className={cn(
-            "border-t-2 border-blue-900 pt-4 md:pt-6",
+            "pt-4 md:pt-6",
+            !forPdf && "border-t-2 border-blue-900",
             forPdf && "pt-6"
           )}>
             <div className={cn(
@@ -245,8 +250,9 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
             )}>
               {/* Markaz Section */}
               <div className={cn(
-                "bg-gray-50 rounded-xl p-3 md:p-5 relative",
-                forPdf && "p-5"
+                "p-3 md:p-5 relative",
+                !forPdf && "bg-gray-50 rounded-xl",
+                forPdf && "p-5 bg-gray-100"
               )}>
                 <h3 className={cn(
                   "font-bold text-blue-900 text-xs md:text-sm uppercase tracking-wide mb-2 md:mb-4 flex items-center gap-2",
@@ -285,8 +291,9 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
 
               {/* O'quvchi Section */}
               <div className={cn(
-                "bg-gray-50 rounded-xl p-3 md:p-5 relative",
-                forPdf && "p-5"
+                "p-3 md:p-5 relative",
+                !forPdf && "bg-gray-50 rounded-xl",
+                forPdf && "p-5 bg-gray-100"
               )}>
                 <h3 className={cn(
                   "font-bold text-blue-900 text-xs md:text-sm uppercase tracking-wide mb-2 md:mb-4",
