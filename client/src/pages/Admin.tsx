@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useContract } from '@/lib/contract-context';
 import { useQuery } from '@tanstack/react-query';
 import { fetchContracts } from '@/lib/api';
@@ -10,13 +10,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, FileEdit, Users, Calendar, Download, Send, Globe, MessageSquare } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, FileEdit, Users, Calendar, Download, Send, Globe, MessageSquare, Loader2, X } from 'lucide-react';
 import { Link } from 'wouter';
+import { ContractPaper } from '@/components/ContractPaper';
+import domtoimage from 'dom-to-image-more';
+import { jsPDF } from 'jspdf';
 
 export default function Admin() {
   const { contractTemplate, updateContractTemplate } = useContract();
   const [searchTerm, setSearchTerm] = useState('');
   const [templateText, setTemplateText] = useState(contractTemplate);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const contractRef = useRef<HTMLDivElement>(null);
   
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
@@ -33,13 +40,92 @@ export default function Admin() {
     alert("Shartnoma matni yangilandi!");
   };
 
+  const handleDownloadPDF = async () => {
+    if (!contractRef.current || !selectedContract) return;
+    
+    setIsDownloading(true);
+    try {
+      const element = contractRef.current;
+      const scale = 3;
+      
+      const dataUrl = await domtoimage.toPng(element, {
+        quality: 1.0,
+        bgcolor: '#ffffff',
+        width: element.offsetWidth * scale,
+        height: element.offsetHeight * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          width: element.offsetWidth + 'px',
+          height: element.offsetHeight + 'px',
+        }
+      });
+
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 10;
+      const contentWidth = pageWidth - (margin * 2);
+
+      const imgAspectRatio = img.width / img.height;
+      const imgHeightInMM = contentWidth / imgAspectRatio;
+
+      let yOffset = 0;
+      let pageNumber = 1;
+      const availableHeight = pageHeight - (margin * 2);
+
+      while (yOffset < imgHeightInMM) {
+        if (pageNumber > 1) {
+          pdf.addPage();
+        }
+
+        const sourceY = (yOffset / imgHeightInMM) * img.height;
+        const sourceHeight = Math.min((availableHeight / imgHeightInMM) * img.height, img.height - sourceY);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = sourceHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, img.width, sourceHeight);
+        }
+
+        const pageDataUrl = canvas.toDataURL('image/png', 1.0);
+        const sliceHeightInMM = (sourceHeight / img.height) * imgHeightInMM;
+        pdf.addImage(pageDataUrl, 'PNG', margin, margin, contentWidth, sliceHeightInMM);
+
+        yOffset += availableHeight;
+        pageNumber++;
+      }
+
+      pdf.save(`Shartnoma_${selectedContract.contractNumber}_${selectedContract.studentName.replace(/\s+/g, '_')}.pdf`);
+      setSelectedContract(null);
+    } catch (error) {
+      console.error('PDF yaratishda xato:', error);
+      alert('PDF yaratishda xato yuz berdi');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="min-h-screen bg-slate-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-500">Shartnomalar va o'quvchilar nazorati</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Panel</h1>
+            <p className="text-gray-500 text-sm md:text-base">Shartnomalar va o'quvchilar nazorati</p>
           </div>
           <Link href="/">
             <Button variant="outline">Saytga qaytish</Button>
@@ -87,30 +173,31 @@ export default function Admin() {
 
             <Card className="col-span-4">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <CardTitle>Barcha Shartnomalar</CardTitle>
-                  <div className="relative w-64">
+                  <div className="relative w-full md:w-64">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input 
-                      placeholder="Qidirish..." 
+                      placeholder="Ism yoki raqam bo'yicha qidirish..." 
                       className="pl-8"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      data-testid="input-search"
                     />
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>O'quvchi</TableHead>
+                      <TableHead>Shartnoma №</TableHead>
+                      <TableHead>O'quvchi ismi</TableHead>
+                      <TableHead>Telefon</TableHead>
                       <TableHead>Kurs</TableHead>
                       <TableHead>Sana</TableHead>
-                      <TableHead>Manba</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Amallar</TableHead>
+                      <TableHead className="text-right">Yuklab olish</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -128,28 +215,33 @@ export default function Admin() {
                       </TableRow>
                     ) : (
                       filteredContracts.map((contract) => (
-                        <TableRow key={contract.id}>
+                        <TableRow key={contract.id} data-testid={`row-contract-${contract.id}`}>
                           <TableCell className="font-mono text-xs">{contract.contractNumber}</TableCell>
                           <TableCell>
-                            <div className="font-medium">{contract.studentName}</div>
-                            <div className="text-xs text-gray-500">{contract.phone}</div>
+                            <div className="font-medium text-gray-900" data-testid={`text-student-name-${contract.id}`}>
+                              {contract.studentName}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-gray-600">{contract.phone}</div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{contract.course}</Badge>
                           </TableCell>
-                          <TableCell>{new Date(contract.createdAt).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <MessageSquare className="w-3 h-3 text-blue-500" />
-                              Web
-                            </div>
-                          </TableCell>
+                          <TableCell className="text-sm">{new Date(contract.createdAt).toLocaleDateString('uz-UZ')}</TableCell>
                           <TableCell>
                             <Badge className="bg-green-100 text-green-800 hover:bg-green-100 shadow-none border-0">Imzolangan</Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="gap-1"
+                              onClick={() => setSelectedContract(contract)}
+                              data-testid={`button-download-${contract.id}`}
+                            >
                               <Download className="h-4 w-4" />
+                              <span className="hidden md:inline">PDF</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -249,6 +341,98 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* PDF Download Dialog */}
+      <Dialog open={!!selectedContract} onOpenChange={() => setSelectedContract(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Shartnoma: {selectedContract?.contractNumber}</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedContract && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">O'quvchi:</span>
+                    <span className="font-medium ml-2">{selectedContract.studentName}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Telefon:</span>
+                    <span className="font-medium ml-2">{selectedContract.phone}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Kurs:</span>
+                    <span className="font-medium ml-2">{selectedContract.course}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Sana:</span>
+                    <span className="font-medium ml-2">{new Date(selectedContract.createdAt).toLocaleDateString('uz-UZ')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hidden Full-Size Contract for PDF Export */}
+              <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                <div ref={contractRef} style={{ backgroundColor: '#ffffff', color: '#1f2937', width: '794px' }}>
+                  <ContractPaper 
+                    data={{
+                      name: selectedContract.studentName,
+                      age: selectedContract.age,
+                      course: selectedContract.course,
+                      format: selectedContract.format,
+                      number: selectedContract.contractNumber,
+                      date: new Date(selectedContract.createdAt).toLocaleDateString('uz-UZ')
+                    }}
+                    forPdf={true}
+                  />
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="overflow-x-auto bg-gray-100 rounded-xl border p-2 md:p-4 max-h-[400px] overflow-y-auto">
+                <ContractPaper 
+                  data={{
+                    name: selectedContract.studentName,
+                    age: selectedContract.age,
+                    course: selectedContract.course,
+                    format: selectedContract.format,
+                    number: selectedContract.contractNumber,
+                    date: new Date(selectedContract.createdAt).toLocaleDateString('uz-UZ')
+                  }}
+                  className="mx-auto max-w-full"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={() => setSelectedContract(null)}>
+                  Yopish
+                </Button>
+                <Button 
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
+                  className="bg-blue-600 hover:bg-blue-700 gap-2"
+                  data-testid="button-download-pdf"
+                >
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Yuklanmoqda...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      PDF Yuklab Olish
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
