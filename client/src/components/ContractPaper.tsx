@@ -143,99 +143,113 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
               <p style={{ color: '#93c5fd', fontSize: '14px', marginTop: '4px' }}>Arab - Ingliz - Rus Tillari</p>
             </div>
           </div>
-          <div style={{ 
-            backgroundColor: 'rgba(255,255,255,0.2)', 
-            borderRadius: '8px', 
-            padding: '12px 16px',
-            textAlign: 'right'
-          }}>
+          <div style={{ textAlign: 'right' }}>
             <p style={{ color: '#93c5fd', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Shartnoma</p>
             <p style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'monospace' }}>№ {contractNumber}</p>
           </div>
         </div>
 
         {/* Title */}
-        <div style={{ textAlign: 'center', padding: '24px 0', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ textAlign: 'center', padding: '24px 32px', backgroundColor: '#ffffff' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1f2937', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
             ONLAYN O'QUV SHARTNOMASI
           </h2>
-          <p style={{ color: '#6b7280', marginTop: '8px' }}>{formattedDate}</p>
+          <p style={{ color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>{formattedDate}</p>
         </div>
 
-        {/* Info Card */}
-        <div style={{ margin: '24px 32px', padding: '20px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: '#2563eb', textTransform: 'uppercase', fontWeight: '600', marginBottom: '4px' }}>Markaz</p>
-              <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '16px' }}>"Zamonaviy Ta'lim" MCHJ</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#2563eb', textTransform: 'uppercase', fontWeight: '600', marginBottom: '4px' }}>O'quvchi</p>
-              <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '16px' }}>{data.name || '_______________'}</p>
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: '#6b7280' }}>Kurs</p>
-              <p style={{ fontWeight: '500', color: '#1f2937' }}>{data.course || '___'}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#6b7280' }}>Format</p>
-              <p style={{ fontWeight: '500', color: '#1f2937' }}>{data.format || 'Online'}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#6b7280' }}>Yosh</p>
-              <p style={{ fontWeight: '500', color: '#1f2937' }}>{data.age || '___'}</p>
-            </div>
-          </div>
-        </div>
+        {/* Info Table */}
+        <table style={{ width: 'calc(100% - 64px)', margin: '0 32px 24px', borderCollapse: 'collapse', backgroundColor: '#ffffff' }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '12px', border: '1px solid #1e3a8a', width: '50%' }}>
+                <span style={{ fontSize: '11px', color: '#1e3a8a', textTransform: 'uppercase', fontWeight: '600' }}>Markaz:</span>
+                <br />
+                <span style={{ fontWeight: '600', color: '#1f2937', fontSize: '14px' }}>"Zamonaviy Ta'lim" MCHJ</span>
+              </td>
+              <td style={{ padding: '12px', border: '1px solid #1e3a8a', width: '50%' }}>
+                <span style={{ fontSize: '11px', color: '#1e3a8a', textTransform: 'uppercase', fontWeight: '600' }}>O'quvchi:</span>
+                <br />
+                <span style={{ fontWeight: '600', color: '#1f2937', fontSize: '14px' }}>{data.name || '_______________'}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '12px', border: '1px solid #1e3a8a' }} colSpan={2}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ width: '33%' }}>
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>Kurs:</span>
+                        <br />
+                        <span style={{ fontWeight: '500', color: '#1f2937' }}>{data.course || '___'}</span>
+                      </td>
+                      <td style={{ width: '33%' }}>
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>Format:</span>
+                        <br />
+                        <span style={{ fontWeight: '500', color: '#1f2937' }}>{data.format || 'Online'}</span>
+                      </td>
+                      <td style={{ width: '33%' }}>
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>Yosh:</span>
+                        <br />
+                        <span style={{ fontWeight: '500', color: '#1f2937' }}>{data.age || '___'}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
         {/* Contract Content */}
-        <div style={{ padding: '0 32px 24px' }}>
+        <div style={{ padding: '0 32px 24px', backgroundColor: '#ffffff' }}>
           {formatContent(filledContent, true)}
         </div>
 
         {/* Footer */}
-        <div style={{ margin: '0 32px 32px', paddingTop: '24px', borderTop: '2px solid #1e3a8a' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-            <div style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '14px', textTransform: 'uppercase', marginBottom: '16px' }}>
-                O'quv Markazi
-              </h3>
-              <div style={{ fontSize: '12px', color: '#4b5563' }}>
-                <p style={{ fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>MCHJ "Zamonaviy Ta'lim"</p>
-                <p style={{ marginBottom: '4px' }}>Namangan vil., Uychi tum., Bog' MFY, Savdogar ko'chasi, 41-uy</p>
-                <p>INN: 312 316 714</p>
-              </div>
-              <div style={{ marginTop: '24px', borderTop: '1px solid #d1d5db', paddingTop: '16px' }}>
-                <p style={{ fontSize: '10px', color: '#9ca3af' }}>Imzo va muhr:</p>
-                <div style={{ height: '40px' }}></div>
-              </div>
-            </div>
-            <div style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-              <h3 style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '14px', textTransform: 'uppercase', marginBottom: '16px' }}>
-                O'quvchi
-              </h3>
-              <div style={{ fontSize: '12px', color: '#4b5563' }}>
-                <p style={{ color: '#9ca3af' }}>F.I.SH:</p>
-                <p style={{ fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>{data.name || '_______________'}</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div>
-                    <p style={{ color: '#9ca3af' }}>Yosh:</p>
-                    <p style={{ fontWeight: '500' }}>{data.age || '___'}</p>
-                  </div>
-                  <div>
-                    <p style={{ color: '#9ca3af' }}>Kurs:</p>
-                    <p style={{ fontWeight: '500' }}>{data.course || '___'}</p>
-                  </div>
-                </div>
-              </div>
-              <div style={{ marginTop: '24px', borderTop: '1px solid #d1d5db', paddingTop: '16px' }}>
-                <p style={{ fontSize: '10px', color: '#9ca3af' }}>Imzo:</p>
-                <div style={{ height: '40px' }}></div>
-              </div>
-            </div>
-          </div>
+        <div style={{ margin: '0 32px 32px', paddingTop: '24px', borderTop: '2px solid #1e3a8a', backgroundColor: '#ffffff' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '50%', padding: '16px', border: '1px solid #1e3a8a', verticalAlign: 'top' }}>
+                  <p style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '14px', textTransform: 'uppercase', margin: '0 0 12px 0' }}>
+                    O'quv Markazi
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#4b5563', margin: '0 0 4px 0' }}>
+                    <strong style={{ color: '#1f2937' }}>MCHJ "Zamonaviy Ta'lim"</strong>
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#4b5563', margin: '0 0 4px 0' }}>
+                    Namangan vil., Uychi tum., Bog' MFY, Savdogar ko'chasi, 41-uy
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#4b5563', margin: '0 0 16px 0' }}>
+                    INN: 312 316 714
+                  </p>
+                  <p style={{ fontSize: '10px', color: '#9ca3af', margin: '16px 0 0 0', borderTop: '1px solid #d1d5db', paddingTop: '12px' }}>Imzo va muhr:</p>
+                </td>
+                <td style={{ width: '50%', padding: '16px', border: '1px solid #1e3a8a', verticalAlign: 'top' }}>
+                  <p style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '14px', textTransform: 'uppercase', margin: '0 0 12px 0' }}>
+                    O'quvchi
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#9ca3af', margin: '0' }}>F.I.SH:</p>
+                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#1f2937', margin: '0 0 8px 0' }}>{data.name || '_______________'}</p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ width: '50%' }}>
+                          <p style={{ fontSize: '12px', color: '#9ca3af', margin: '0' }}>Yosh:</p>
+                          <p style={{ fontSize: '12px', fontWeight: '500', color: '#1f2937', margin: '0' }}>{data.age || '___'}</p>
+                        </td>
+                        <td style={{ width: '50%' }}>
+                          <p style={{ fontSize: '12px', color: '#9ca3af', margin: '0' }}>Kurs:</p>
+                          <p style={{ fontSize: '12px', fontWeight: '500', color: '#1f2937', margin: '0' }}>{data.course || '___'}</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p style={{ fontSize: '10px', color: '#9ca3af', margin: '16px 0 0 0', borderTop: '1px solid #d1d5db', paddingTop: '12px' }}>Imzo:</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     );
