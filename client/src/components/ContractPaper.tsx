@@ -180,9 +180,9 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
 
         {/* Parties Info Card */}
         <div className={cn(
-          "mx-3 md:mx-8 my-4 md:my-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 md:p-5",
-          !forPdf && "border border-blue-100",
-          forPdf && "mx-8 my-6 p-5"
+          "mx-3 md:mx-8 my-4 md:my-6 rounded-xl p-3 md:p-5",
+          !forPdf && "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100",
+          forPdf && "mx-8 my-6 p-5 bg-white"
         )}>
           <div className="grid grid-cols-2 gap-3 md:gap-6">
             <div>
@@ -252,7 +252,7 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
               <div className={cn(
                 "p-3 md:p-5 relative",
                 !forPdf && "bg-gray-50 rounded-xl",
-                forPdf && "p-5 bg-gray-100"
+                forPdf && "p-5 bg-white"
               )}>
                 <h3 className={cn(
                   "font-bold text-blue-900 text-xs md:text-sm uppercase tracking-wide mb-2 md:mb-4 flex items-center gap-2",
@@ -293,7 +293,7 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
               <div className={cn(
                 "p-3 md:p-5 relative",
                 !forPdf && "bg-gray-50 rounded-xl",
-                forPdf && "p-5 bg-gray-100"
+                forPdf && "p-5 bg-white"
               )}>
                 <h3 className={cn(
                   "font-bold text-blue-900 text-xs md:text-sm uppercase tracking-wide mb-2 md:mb-4",
