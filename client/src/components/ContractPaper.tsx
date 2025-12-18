@@ -351,7 +351,7 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
                   <div className="text-center">
                     <p className="text-[5px] md:text-[7px] font-bold text-blue-700 uppercase">Tasdiqlandi</p>
                     <div className="w-6 md:w-8 h-[1px] bg-blue-700 mx-auto my-0.5"></div>
-                    <p className="text-[4px] md:text-[5px] text-blue-700">2024</p>
+                    <p className="text-[4px] md:text-[5px] text-blue-700">2025</p>
                   </div>
                 </div>
               </div>
@@ -381,7 +381,7 @@ export function ContractPaper({ data, className, onDownload, forPdf = false }: C
                   <div className="text-center">
                     <p className="text-[5px] md:text-[7px] font-bold text-green-600 uppercase">Tasdiqlandi</p>
                     <div className="w-6 md:w-8 h-[1px] bg-green-600 mx-auto my-0.5"></div>
-                    <p className="text-[4px] md:text-[5px] text-green-600">2024</p>
+                    <p className="text-[4px] md:text-[5px] text-green-600">2025</p>
                   </div>
                 </div>
               </div>

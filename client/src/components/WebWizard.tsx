@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles, Loader2 } from 'lucide-react';
+import { FileText, CheckCircle, ArrowRight, User, Phone, ChevronRight, ChevronLeft, Download, Sparkles, Loader2, Share2 } from 'lucide-react';
 import { useContract, CourseLevel } from '@/lib/contract-context';
 import { useMutation } from '@tanstack/react-query';
 import { createContract } from '@/lib/api';
@@ -21,6 +21,7 @@ export function WebWizard() {
   const [step, setStep] = useState<Step>(1);
   const [createdContract, setCreatedContract] = useState<Contract | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const { contractTemplate } = useContract();
   const { toast } = useToast();
   
@@ -118,6 +119,60 @@ export function WebWizard() {
       });
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    if (!createdContract) return;
+    
+    setIsSharing(true);
+    try {
+      const response = await fetch(`/api/contracts/${createdContract.id}/pdf`);
+      
+      if (!response.ok) {
+        throw new Error('PDF yaratishda xato');
+      }
+      
+      const blob = await response.blob();
+      const fileName = `Shartnoma_${createdContract.contractNumber}_${formData.name.replace(/\s+/g, '_')}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Shartnoma',
+          text: `"Zamonaviy Ta'lim" shartnomasi - ${createdContract.contractNumber}`
+        });
+        
+        toast({
+          title: "Muvaffaqiyatli!",
+          description: "Shartnoma ulashildi.",
+          className: "bg-green-50 border-green-200"
+        });
+      } else {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Diqqat",
+          description: "Ulashish qo'llab-quvvatlanmaydi, fayl yuklab olindi.",
+        });
+      }
+    } catch (error: any) {
+      console.error('PDF share error:', error);
+      toast({
+        title: "Xatolik",
+        description: "PDF ulashishda xatolik yuz berdi",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -409,9 +464,29 @@ export function WebWizard() {
             <div className="flex flex-col gap-3">
               <Button 
                 size="lg" 
+                className="w-full bg-green-600 hover:bg-green-700 text-white h-12 md:h-14 text-base md:text-lg shadow-xl"
+                onClick={handleSharePDF}
+                disabled={isSharing}
+                data-testid="button-share-pdf"
+              >
+                {isSharing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 mr-2 animate-spin" />
+                    Ulashilmoqda...
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-5 h-5 md:w-6 md:h-6 mr-2" />
+                    Shartnomani Ulashish
+                  </>
+                )}
+              </Button>
+              <Button 
+                size="lg" 
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 md:h-14 text-base md:text-lg shadow-xl"
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
+                data-testid="button-download-pdf"
               >
                 {isDownloading ? (
                   <>
