@@ -141,8 +141,15 @@ export async function registerRoutes(
 
       const contract = await storage.createContract(result.data);
       
-      // Send Telegram notification (if configured)
-      await sendTelegramNotification(contract);
+      // Send Telegram notification with PDF (if configured)
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+      const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5000';
+      const baseUrl = `${protocol}://${host}`;
+      
+      // Send notification in background (don't block response)
+      sendTelegramNotification(contract, baseUrl).catch(err => {
+        console.error("Background Telegram notification failed:", err);
+      });
       
       res.status(201).json(contract);
     } catch (error) {
@@ -238,8 +245,8 @@ export async function registerRoutes(
   return httpServer;
 }
 
-// Telegram notification helper
-async function sendTelegramNotification(contract: any) {
+// Telegram notification helper with PDF
+async function sendTelegramNotification(contract: any, baseUrl?: string) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -263,7 +270,8 @@ async function sendTelegramNotification(contract: any) {
 ✅ Status: Imzolangan
     `.trim();
 
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    // Send text message first
+    const msgResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -273,10 +281,39 @@ async function sendTelegramNotification(contract: any) {
       })
     });
 
-    if (!response.ok) {
-      console.error("Telegram notification failed:", await response.text());
+    if (!msgResponse.ok) {
+      console.error("Telegram message failed:", await msgResponse.text());
     } else {
-      console.log("Telegram notification sent successfully");
+      console.log("Telegram message sent successfully");
+    }
+
+    // Send PDF if baseUrl is provided
+    if (baseUrl) {
+      try {
+        const { generateContractPdf } = await import('./pdf');
+        const pdfBuffer = await generateContractPdf(contract.id, baseUrl);
+        
+        const fileName = `Shartnoma_${contract.contractNumber}_${contract.studentName.replace(/\s+/g, '_')}.pdf`;
+        
+        // Create form data for file upload
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), fileName);
+        formData.append('caption', `📄 Shartnoma: ${contract.contractNumber}\n👤 ${contract.studentName}`);
+
+        const pdfResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!pdfResponse.ok) {
+          console.error("Telegram PDF send failed:", await pdfResponse.text());
+        } else {
+          console.log("Telegram PDF sent successfully");
+        }
+      } catch (pdfError) {
+        console.error("Error generating/sending PDF to Telegram:", pdfError);
+      }
     }
   } catch (error) {
     console.error("Error sending Telegram notification:", error);
